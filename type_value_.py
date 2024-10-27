@@ -6,6 +6,8 @@ class Type:
     INT = "int"
     BOOL = "bool"
     STRING = "string"
+    NIL = "nil"
+
 
 # Represents a value, which has a type and its value
 class Value:
@@ -34,6 +36,8 @@ def create_value(val):
 
 
 def get_printable(val):
+    if val.type() == Type.NIL:
+        return "nil"
     if val.type() == Type.INT:
         return str(val.value())
     if val.type() == Type.STRING:

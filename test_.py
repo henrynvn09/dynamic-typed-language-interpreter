@@ -196,16 +196,34 @@ func main() {
     [
         """
 func bar(a) {
-  return ;  /* no return value specified */
+  if (a == 0) { return; }
+  if (a == 1) { return 1; }
+  if (a == 2) { return 5*a; }
+  if (a == 3) { return true; }
+  if (a == 4) { return nil; }
+}
+func foo(x) {
+  if (x < 0) {
+    print(x);
+    return -x;
+    print("this will not print");
+  }
+  print("this will not print either");
+  return 5*x;
 }
 
 func main() {
-     if (3 == 2) { print("this should not print!"); }
-     else { print("this should print!"); }
+  print(bar(0));
+  print(bar(1));
+  print(bar(2));
+  print(bar(3));
+  print(bar(4));
+  print(bar(5));
+  print("the positive value is ", foo(-1));
 }
 
 """,
-        "",
+        "nil\n1\n10\ntrue\nnil\nnil",
     ],
 ]
 

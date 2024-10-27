@@ -42,8 +42,9 @@ class Interpreter(InterpreterBase):
         self.__create_new_function_scope(
             func_def.get("name"), func_def.get("args"), passed_arguments
         )
-        self.__run_statements(func_def.get("statements"))
+        _, return_val = self.__run_statements(func_def.get("statements"))
         self.__destroy_function_scope()
+        return return_val if return_val is not None else Value(Type.NIL, None)
 
     def __create_new_function_scope(self, func_name, args, passed_arguments):
         """Initialize new variable scope for a function"""
@@ -72,7 +73,7 @@ class Interpreter(InterpreterBase):
         return self.func_name_to_ast[(name, n_args)]
 
     def __run_statements(self, statements):
-        # all statements of a function are held in arg3 of the function AST node
+        "if there is a return statement, return True, value. otherwise return False, None"
         for statement in statements:
             if self.trace_output:
                 print(statement)
@@ -83,7 +84,16 @@ class Interpreter(InterpreterBase):
             elif statement.elem_type == InterpreterBase.VAR_DEF_NODE:
                 self.__var_def(statement)
             elif statement.elem_type == InterpreterBase.IF_NODE:
-                self.__if_condition(statement)
+                is_return, return_value = self.__if_condition(statement)
+                if is_return:
+                    return is_return, return_value
+            elif statement.elem_type == InterpreterBase.RETURN_NODE:
+                return True, self.__return_value(statement)
+        return False, None
+
+    def __return_value(self, return_ast):
+        value = self.__eval_expr(return_ast.get("expression"))
+        return value
 
     def __if_condition(self, if_ast):
         condition = self.__eval_expr(if_ast.get("condition"))
@@ -92,9 +102,10 @@ class Interpreter(InterpreterBase):
             if_ast.get("else_statements") if if_ast.get("else_statements") else []
         )
         if condition.value():
-            self.__run_statements(statements)
+            is_return, return_value = self.__run_statements(statements)
         else:
-            self.__run_statements(else_statements)
+            is_return, return_value = self.__run_statements(else_statements)
+        return is_return, return_value
 
     def __call_func(self, call_node):
         func_name = call_node.get("name")
@@ -105,7 +116,7 @@ class Interpreter(InterpreterBase):
         if func_name == "inputi":
             return self.__call_input(call_node)
 
-        self.__run_function(func_name, func_args)
+        return self.__run_function(func_name, func_args)
 
     def __call_print(self, call_ast):
         output = ""
@@ -152,6 +163,8 @@ class Interpreter(InterpreterBase):
             )
 
     def __eval_expr(self, expr_ast):
+        if expr_ast is None:
+            return Value(Type.NIL, None)
         if expr_ast.elem_type == InterpreterBase.INT_NODE:
             return Value(Type.INT, expr_ast.get("val"))
         if expr_ast.elem_type == InterpreterBase.STRING_NODE:
