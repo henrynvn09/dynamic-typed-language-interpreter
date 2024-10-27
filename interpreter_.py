@@ -12,7 +12,7 @@ from copy import deepcopy
 # Main interpreter class
 class Interpreter(InterpreterBase):
     # constants
-    BIN_OPS = {"+", "-"}
+    BIN_OPS = {"+", "-", "||", "&&", "==", "!="}
 
     # methods
     def __init__(self, console_output=True, inp=None, trace_output=False):
@@ -141,6 +141,8 @@ class Interpreter(InterpreterBase):
             return Value(Type.INT, expr_ast.get("val"))
         if expr_ast.elem_type == InterpreterBase.STRING_NODE:
             return Value(Type.STRING, expr_ast.get("val"))
+        if expr_ast.elem_type == InterpreterBase.BOOL_NODE:
+            return Value(Type.BOOL, expr_ast.get("val"))
         if expr_ast.elem_type == InterpreterBase.VAR_NODE:
             var_name = expr_ast.get("name")
             val = self.env.get(var_name)
@@ -178,8 +180,22 @@ class Interpreter(InterpreterBase):
         self.op_to_lambda[Type.INT]["-"] = lambda x, y: Value(
             x.type(), x.value() - y.value()
         )
+        # set up operations on strings
         self.op_to_lambda[Type.STRING] = {}
         self.op_to_lambda[Type.STRING]["+"] = lambda x, y: Value(
             x.type(), x.value() + y.value()
         )
-        # add other operators here later for int, string, bool, etc
+        # set up operations on booleans
+        self.op_to_lambda[Type.BOOL] = {}
+        self.op_to_lambda[Type.BOOL]["||"] = lambda x, y: Value(
+            x.type(), x.value() or y.value()
+        )
+        self.op_to_lambda[Type.BOOL]["&&"] = lambda x, y: Value(
+            x.type(), x.value() and y.value()
+        )
+        self.op_to_lambda[Type.BOOL]["=="] = lambda x, y: Value(
+            x.type(), x.value() == y.value()
+        )
+        self.op_to_lambda[Type.BOOL]["!="] = lambda x, y: Value(
+            x.type(), x.value() != y.value()
+        )

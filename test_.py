@@ -125,6 +125,20 @@ func main() {
 func bletch(a,b,c) {
   print("The answer is: ", a+b*c);
 }
+""",
+        "what u input",
+    ],
+    [
+        """
+        func bar(a) {
+  return a+1;
+}
+func main() {
+  print(false || true);
+  print(false && true);
+  print(false == true);
+    print(false != true);
+}
 
 """,
         "what u input",
