@@ -82,6 +82,19 @@ class Interpreter(InterpreterBase):
                 self.__assign(statement)
             elif statement.elem_type == InterpreterBase.VAR_DEF_NODE:
                 self.__var_def(statement)
+            elif statement.elem_type == InterpreterBase.IF_NODE:
+                self.__if_condition(statement)
+
+    def __if_condition(self, if_ast):
+        condition = self.__eval_expr(if_ast.get("condition"))
+        statements = if_ast.get("statements")
+        else_statements = (
+            if_ast.get("else_statements") if if_ast.get("else_statements") else []
+        )
+        if condition.value():
+            self.__run_statements(statements)
+        else:
+            self.__run_statements(else_statements)
 
     def __call_func(self, call_node):
         func_name = call_node.get("name")

@@ -151,7 +151,7 @@ print(a > 5);          /* prints false */
 print("abc"+"def");    /* prints abcdef */
 
 print("abc"==3);    /* prints false */
-print("abc"!=nil);    /* prints true */
+print("abc"!=23);    /* prints true */
 
 }
 
@@ -172,6 +172,40 @@ abcdef
 false
 true
 """,
+    ],
+    [
+        """
+      func foo() { 
+ print("hello");
+ /* no explicit return command */
+}
+
+func bar(a) {
+  return a;  /* no return value specified */
+}
+
+func main() {
+   var val;
+   val = nil;
+   if (bar(3) != 2) { print("this should print!"); }
+}
+
+""",
+        "hello\nthis should print!",
+    ],
+    [
+        """
+func bar(a) {
+  return ;  /* no return value specified */
+}
+
+func main() {
+     if (3 == 2) { print("this should not print!"); }
+     else { print("this should print!"); }
+}
+
+""",
+        "",
     ],
 ]
 
