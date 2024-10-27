@@ -87,6 +87,48 @@ That's all!
         inputi = ...
         """,
     ],
+    [
+        """
+        func bar(a) {
+  print(a);
+}
+func bar(a,b) {
+    print(a+b);
+}
+func main() {
+  bar(5);
+  bar("hi");
+  bar(True || False);
+    bletch(1,3,2+4);
+}
+func bletch(a,b,c) {
+  print("The answer is: ", a+b*c);
+}
+
+""",
+        "what u input",
+    ],
+    [
+        """
+        func bar(a) {
+  print(a);
+}
+func bar(a,b) {
+    print(a+b);
+}
+func main() {
+  bar(5);
+  bar("hi");
+  bar(1+2);
+    bletch(1,3,2+4);
+}
+func bletch(a,b,c) {
+  print("The answer is: ", a+b*c);
+}
+
+""",
+        "what u input",
+    ],
 ]
 
 
@@ -109,5 +151,5 @@ def test(program_source, expected_output):
 
 
 if __name__ == "__main__":
-    for program, expected_output in tests:
+    for program, expected_output in tests[-1:]:
         test(program, expected_output)

@@ -5,6 +5,8 @@ from env_ import EnvironmentManager
 from type_value_ import Type, Value, create_value, get_printable
 from intbase import InterpreterBase, ErrorType
 from brewparse import parse_program
+from element import Element
+from copy import deepcopy
 
 
 # Main interpreter class
@@ -17,6 +19,9 @@ class Interpreter(InterpreterBase):
         super().__init__(console_output, inp)
         self.trace_output = trace_output
         self.__setup_ops()
+        self.func_name_to_ast = {}  # dict of function names to its node
+        self.function_stack = []  # stack of function call
+        self.env = None  # EnvironmentManager of the current function scope
 
     # run a program that's provided in a string
     # usese the provided Parser found in brewparse.py to parse the program
@@ -24,19 +29,45 @@ class Interpreter(InterpreterBase):
     def run(self, program):
         ast = parse_program(program)
         self.__set_up_function_table(ast)
-        main_func = self.__get_func_by_name("main")
-        self.env = EnvironmentManager()
-        self.__run_statements(main_func.get("statements"))
+        # main_func = self.__get_func_by_name("main")
+        # self.env = EnvironmentManager()
+        # self.__run_statements(main_func.get("statements"))
+        self.__run_function("main")
+
+    def __run_function(self, func_name, passed_arguments=[]):
+        """run a function based on name and list of arguments"""
+        func_def: Element = self.__get_func(func_name, passed_arguments)
+        self.__create_new_function_scope(
+            func_def.get("name"), func_def.get("args"), passed_arguments
+        )
+        self.__run_statements(func_def.get("statements"))
+        self.__destroy_function_scope()
+
+    def __create_new_function_scope(self, func_name, args, passed_arguments):
+        """Initialize new variable scope for a function"""
+        self.function_stack.append((func_name, EnvironmentManager()))
+        self.env = self.function_stack[-1][1]  # current environment is top of stack
+        for arg, value in zip(args, passed_arguments):
+            self.__arg_assign(arg.get("name"), value)
+
+    def __destroy_function_scope(self):
+        """Destroy the current function scope, doesn't check errors"""
+        self.function_stack.pop()
 
     def __set_up_function_table(self, ast):
+        """function table is a dictionary of (function name, number of arguments) to the AST node"""
         self.func_name_to_ast = {}
         for func_def in ast.get("functions"):
-            self.func_name_to_ast[func_def.get("name")] = func_def
+            self.func_name_to_ast[(func_def.get("name"), len(func_def.get("args")))] = (
+                func_def
+            )
 
-    def __get_func_by_name(self, name):
-        if name not in self.func_name_to_ast:
+    def __get_func(self, name, args):
+        """get a function by name and number of arguments"""
+        n_args = len(args)
+        if (name, n_args) not in self.func_name_to_ast:
             super().error(ErrorType.NAME_ERROR, f"Function {name} not found")
-        return self.func_name_to_ast[name]
+        return self.func_name_to_ast[(name, n_args)]
 
     def __run_statements(self, statements):
         # all statements of a function are held in arg3 of the function AST node
@@ -52,13 +83,14 @@ class Interpreter(InterpreterBase):
 
     def __call_func(self, call_node):
         func_name = call_node.get("name")
+        func_args = call_node.get("args")
+
         if func_name == "print":
             return self.__call_print(call_node)
         if func_name == "inputi":
             return self.__call_input(call_node)
 
-        # add code here later to call other functions
-        super().error(ErrorType.NAME_ERROR, f"Function {func_name} not found")
+        self.__run_function(func_name, func_args)
 
     def __call_print(self, call_ast):
         output = ""
@@ -94,6 +126,14 @@ class Interpreter(InterpreterBase):
         if not self.env.create(var_name, Value(Type.INT, 0)):
             super().error(
                 ErrorType.NAME_ERROR, f"Duplicate definition for variable {var_name}"
+            )
+
+    def __arg_assign(self, var_name, value_obj_original: Element):
+        new_val = self.__eval_expr(value_obj_original)
+        if not self.env.create(var_name, new_val):
+            super().error(
+                ErrorType.NAME_ERROR,
+                f"Duplicate definition for function argument name {var_name}",
             )
 
     def __eval_expr(self, expr_ast):
