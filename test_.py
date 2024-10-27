@@ -150,6 +150,8 @@ a = 3;
 print(a > 5);          /* prints false */
 print("abc"+"def");    /* prints abcdef */
 
+print("abc"==3);    /* prints false */
+print("abc"!=nil);    /* prints true */
 
 }
 
@@ -167,6 +169,8 @@ true
 false
 false
 abcdef
+false
+true
 """,
     ],
 ]

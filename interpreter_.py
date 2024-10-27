@@ -13,6 +13,7 @@ from copy import deepcopy
 class Interpreter(InterpreterBase):
     # constants
     UNARY_OPS = {"!", "neg"}
+    BIN_OPS_EXCEPT = {"==", "!="}
     BIN_OPS = {"+", "-", "*", "/", ">=", "<=", ">", "<", "==", "!=", "||", "&&"}
 
     # methods
@@ -170,6 +171,18 @@ class Interpreter(InterpreterBase):
     def __eval_op(self, arith_ast):
         left_value_obj = self.__eval_expr(arith_ast.get("op1"))
         right_value_obj = self.__eval_expr(arith_ast.get("op2"))
+
+        # Special case for == and != operators comparing different types and nil
+        if arith_ast.elem_type in Interpreter.BIN_OPS_EXCEPT and (
+            not left_value_obj
+            or not right_value_obj
+            or left_value_obj.type() != right_value_obj.type()
+        ):
+            if arith_ast.elem_type == "==":
+                return Value(Type.BOOL, False)
+            elif arith_ast.elem_type == "!=":
+                return Value(Type.BOOL, True)
+
         if left_value_obj.type() != right_value_obj.type():
             super().error(
                 ErrorType.TYPE_ERROR,
