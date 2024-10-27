@@ -1,8 +1,8 @@
 # Add to spec:
 # - printing out a nil value is undefined
 
-from env_v1 import EnvironmentManager
-from type_valuev1 import Type, Value, create_value, get_printable
+from env_ import EnvironmentManager
+from type_value_ import Type, Value, create_value, get_printable
 from intbase import InterpreterBase, ErrorType
 from brewparse import parse_program
 
@@ -49,7 +49,6 @@ class Interpreter(InterpreterBase):
                 self.__assign(statement)
             elif statement.elem_type == InterpreterBase.VAR_DEF_NODE:
                 self.__var_def(statement)
-
 
     def __call_func(self, call_node):
         func_name = call_node.get("name")
@@ -138,5 +137,9 @@ class Interpreter(InterpreterBase):
         )
         self.op_to_lambda[Type.INT]["-"] = lambda x, y: Value(
             x.type(), x.value() - y.value()
+        )
+        self.op_to_lambda[Type.STRING] = {}
+        self.op_to_lambda[Type.STRING]["+"] = lambda x, y: Value(
+            x.type(), x.value() + y.value()
         )
         # add other operators here later for int, string, bool, etc
