@@ -138,10 +138,36 @@ func main() {
   print(false && true);
   print(false == true);
     print(false != true);
+    print(!(false == true));
+    print(true || false);  /* prints true */
+print(true || false && false); /* prints true */
+print(5/3);            /* prints 1 */
+print(-6);             /* prints -6 */
+print(!true);          /* prints false */
+
+var a;
+a = 3;
+print(a > 5);          /* prints false */
+print("abc"+"def");    /* prints abcdef */
+
+
 }
 
 """,
-        "what u input",
+        """
+        true
+false
+false
+true
+true
+true
+true
+1
+-6
+false
+false
+abcdef
+""",
     ],
 ]
 

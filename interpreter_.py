@@ -12,7 +12,8 @@ from copy import deepcopy
 # Main interpreter class
 class Interpreter(InterpreterBase):
     # constants
-    BIN_OPS = {"+", "-", "||", "&&", "==", "!="}
+    UNARY_OPS = {"!", "neg"}
+    BIN_OPS = {"+", "-", "*", "/", ">=", "<=", ">", "<", "==", "!=", "||", "&&"}
 
     # methods
     def __init__(self, console_output=True, inp=None, trace_output=False):
@@ -151,8 +152,20 @@ class Interpreter(InterpreterBase):
             return val
         if expr_ast.elem_type == InterpreterBase.FCALL_NODE:
             return self.__call_func(expr_ast)
+        if expr_ast.elem_type in Interpreter.UNARY_OPS:
+            return self.__eval_unary_op(expr_ast)
         if expr_ast.elem_type in Interpreter.BIN_OPS:
             return self.__eval_op(expr_ast)
+
+    def __eval_unary_op(self, arith_ast):
+        value_obj = self.__eval_expr(arith_ast.get("op1"))
+        if arith_ast.elem_type not in self.op_to_lambda[value_obj.type()]:
+            super().error(
+                ErrorType.TYPE_ERROR,
+                f"Incompatible operator {arith_ast.get_type} for type {value_obj.type()}",
+            )
+        f = self.op_to_lambda[value_obj.type()][arith_ast.elem_type]
+        return f(value_obj)
 
     def __eval_op(self, arith_ast):
         left_value_obj = self.__eval_expr(arith_ast.get("op1"))
@@ -180,10 +193,40 @@ class Interpreter(InterpreterBase):
         self.op_to_lambda[Type.INT]["-"] = lambda x, y: Value(
             x.type(), x.value() - y.value()
         )
+        self.op_to_lambda[Type.INT]["*"] = lambda x, y: Value(
+            x.type(), x.value() * y.value()
+        )
+        self.op_to_lambda[Type.INT]["/"] = lambda x, y: Value(
+            x.type(), x.value() // y.value()
+        )
+        self.op_to_lambda[Type.INT][">="] = lambda x, y: Value(
+            Type.BOOL, x.value() >= y.value()
+        )
+        self.op_to_lambda[Type.INT]["<="] = lambda x, y: Value(
+            Type.BOOL, x.value() <= y.value()
+        )
+        self.op_to_lambda[Type.INT][">"] = lambda x, y: Value(
+            Type.BOOL, x.value() > y.value()
+        )
+        self.op_to_lambda[Type.INT]["<"] = lambda x, y: Value(
+            Type.BOOL, x.value() < y.value()
+        )
+        self.op_to_lambda[Type.INT]["=="] = lambda x, y: Value(
+            Type.BOOL, x.value() == y.value()
+        )
+        self.op_to_lambda[Type.INT]["!="] = lambda x, y: Value(
+            Type.BOOL, x.value() != y.value()
+        )
         # set up operations on strings
         self.op_to_lambda[Type.STRING] = {}
         self.op_to_lambda[Type.STRING]["+"] = lambda x, y: Value(
             x.type(), x.value() + y.value()
+        )
+        self.op_to_lambda[Type.STRING]["=="] = lambda x, y: Value(
+            x.type(), x.value() == y.value()
+        )
+        self.op_to_lambda[Type.STRING]["!="] = lambda x, y: Value(
+            x.type(), x.value() != y.value()
         )
         # set up operations on booleans
         self.op_to_lambda[Type.BOOL] = {}
@@ -199,3 +242,7 @@ class Interpreter(InterpreterBase):
         self.op_to_lambda[Type.BOOL]["!="] = lambda x, y: Value(
             x.type(), x.value() != y.value()
         )
+
+        #  unary operations
+        self.op_to_lambda[Type.INT]["neg"] = lambda x: Value(x.type(), -x.value())
+        self.op_to_lambda[Type.BOOL]["!"] = lambda x: Value(x.type(), not x.value())
