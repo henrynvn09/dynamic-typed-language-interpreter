@@ -277,6 +277,41 @@ if (f(x) > 0) {
       """,
         "6",
     ],
+    [
+        """
+func foo(c) { 
+  if (c == 10) {
+    var c;     /* variable of the same name as parameter c */
+    c = "hi";
+    print(c);  /* prints "hi"; the inner c shadows the parameter c*/
+  }
+  print(c); /* prints 10 */
+}
+
+func main() {
+  var a;
+  a = 5;
+  foo(10);
+}
+
+
+""",
+        "hi\n10",
+    ],
+    [
+        """
+func main() {
+var i;
+for (i=0; i+3 < 5; i=i+1) {
+  print(i);
+}
+
+}
+
+
+""",
+        "0\n1",
+    ],
 ]
 
 

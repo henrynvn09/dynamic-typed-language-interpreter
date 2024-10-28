@@ -36,9 +36,6 @@ class Interpreter(InterpreterBase):
     def run(self, program):
         ast = parse_program(program)
         self.__set_up_function_table(ast)
-        # main_func = self.__get_func_by_name("main")
-        # self.env = EnvironmentManager()
-        # self.__run_statements(main_func.get("statements"))
         self.__run_function("main")
 
     def __run_function(self, func_name, passed_arguments=[]):
@@ -107,6 +104,8 @@ class Interpreter(InterpreterBase):
                     return is_return, return_value
             elif statement.elem_type == InterpreterBase.RETURN_NODE:
                 return True, self.__return_value(statement)
+            elif statement.elem_type == InterpreterBase.FOR_NODE:
+                self.__for_loop(statement)
 
         # destroy block scope
         self.__destroy_top_scope()
@@ -116,10 +115,31 @@ class Interpreter(InterpreterBase):
         value = self.__eval_expr(return_ast.get("expression"))
         return value
 
+    def __for_loop(self, for_ast):
+        init = for_ast.get("init")
+        condition = for_ast.get("condition")
+        update = for_ast.get("update")
+        statements = for_ast.get("statements")
+
+        self.__create_new_block_scope()
+        self.__arg_def(init.get("name"), self.__eval_expr(init.get("expression")))
+
+        if self.__eval_expr(condition).type() != Type.BOOL:
+            super().error(
+                ErrorType.TYPE_ERROR, "for condition must be a boolean expression"
+            )
+
+        while self.__eval_expr(condition).value():
+            self.__run_statements(statements)
+            self.__run_statements([update])
+        self.__destroy_top_scope()
+
     def __if_condition(self, if_ast):
         condition = self.__eval_expr(if_ast.get("condition"))
         if condition.type() != Type.BOOL:
-            super().error(ErrorType.TYPE_ERROR, "If condition must be a boolean expr")
+            super().error(
+                ErrorType.TYPE_ERROR, "If condition must be a boolean expression"
+            )
         statements = if_ast.get("statements")
         else_statements = (
             if_ast.get("else_statements") if if_ast.get("else_statements") else []
