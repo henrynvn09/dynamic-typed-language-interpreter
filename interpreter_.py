@@ -49,19 +49,23 @@ class Interpreter(InterpreterBase):
             func_def.get("name"), func_def.get("args"), evaluated_args
         )
         _, return_val = self.__run_statements(func_def.get("statements"))
-        self.__destroy_scope()
+        self.__destroy_top_scope()
         return return_val if return_val is not None else Value(Type.NIL, None)
 
     def __create_new_function_scope(self, func_name, args, values):
         """Initialize new variable scope for a function"""
         self.variable_scope_stack.append((ScopeType.FUNCTION, EnvironmentManager()))
-        self.env = self.variable_scope_stack[-1][
-            1
-        ]  # current environment is top of stack
+        # current environment is top of stack
+        self.env = self.variable_scope_stack[-1][1]
         for arg, value in zip(args, values):
             self.__arg_def(arg.get("name"), value)
 
-    def __destroy_scope(self):
+    def __create_new_block_scope(self):
+        """Initialize new variable scope for a block"""
+        self.variable_scope_stack.append((ScopeType.BLOCK, EnvironmentManager()))
+        self.env = self.variable_scope_stack[-1][1]
+
+    def __destroy_top_scope(self):
         """Destroy the current function scope, doesn't check errors"""
         self.variable_scope_stack.pop()
         self.env = (
@@ -85,6 +89,9 @@ class Interpreter(InterpreterBase):
 
     def __run_statements(self, statements):
         "if there is a return statement, return True, value. otherwise return False, None"
+        # create a block scope
+        self.__create_new_block_scope()
+
         for statement in statements:
             if self.trace_output:
                 print(statement)
@@ -100,6 +107,9 @@ class Interpreter(InterpreterBase):
                     return is_return, return_value
             elif statement.elem_type == InterpreterBase.RETURN_NODE:
                 return True, self.__return_value(statement)
+
+        # destroy block scope
+        self.__destroy_top_scope()
         return False, None
 
     def __return_value(self, return_ast):
@@ -160,10 +170,17 @@ class Interpreter(InterpreterBase):
     def __assign(self, assign_ast):
         var_name = assign_ast.get("name")
         value_obj = self.__eval_expr(assign_ast.get("expression"))
-        if not self.env.set(var_name, value_obj):
-            super().error(
-                ErrorType.NAME_ERROR, f"Undefined variable {var_name} in assignment"
-            )
+
+        # look up variable from current scope up to the closest function scope
+        for scope_type, env_iterator in reversed(self.variable_scope_stack):
+            if env_iterator.get(var_name) is not None:
+                env_iterator.set(var_name, value_obj)
+                break
+            # when reaching the function scope but the variable is not found
+            elif scope_type == ScopeType.FUNCTION:
+                super().error(
+                    ErrorType.NAME_ERROR, f"Undefined variable {var_name} in assignment"
+                )
 
     def __var_def(self, var_ast):
         var_name = var_ast.get("name")
@@ -190,11 +207,16 @@ class Interpreter(InterpreterBase):
         if expr_ast.elem_type == InterpreterBase.BOOL_NODE:
             return Value(Type.BOOL, expr_ast.get("val"))
         if expr_ast.elem_type == InterpreterBase.VAR_NODE:
+            # look up variable from current scope up to the closest function scope
             var_name = expr_ast.get("name")
-            val = self.env.get(var_name)
-            if val is None:
-                super().error(ErrorType.NAME_ERROR, f"Variable {var_name} not found")
-            return val
+            for scope_type, env_iterator in reversed(self.variable_scope_stack):
+                val = env_iterator.get(var_name)
+                if val is not None:
+                    return val
+                if scope_type == ScopeType.FUNCTION and val is None:
+                    super().error(
+                        ErrorType.NAME_ERROR, f"Variable {var_name} not found"
+                    )
         if expr_ast.elem_type == InterpreterBase.FCALL_NODE:
             return self.__call_func(expr_ast)
         if expr_ast.elem_type in Interpreter.UNARY_OPS:

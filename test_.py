@@ -261,6 +261,22 @@ if (f(x) > 0) {
       """,
         "x\nthis should print\n15",
     ],
+    [
+        """
+      func main() {
+  var a;
+  a = 5;        /* variable a's scope is the function's block */
+  if (a == 5) {
+      var b;
+      b = 10;   /* variable b's scope is the if block */
+      a = 6;
+  } /* variable b goes out of scope */
+  print(a); /* works fine since a is still in scope, prints 6 */
+} /* variable a goes out of scope */
+
+      """,
+        "6",
+    ],
 ]
 
 
