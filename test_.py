@@ -240,7 +240,7 @@ if (f(x) > 0) {
 }
 
 """,
-        "nil\n1\n10\ntrue\nnil\nnil\nthe positive value is 1\n16\n48\n16",
+        "nil\n1\n10\ntrue\nnil\nnil\n-1\nthe positive value is 1\n16\n48\n16",
     ],
 ]
 

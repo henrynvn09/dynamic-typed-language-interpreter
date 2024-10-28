@@ -99,6 +99,8 @@ class Interpreter(InterpreterBase):
 
     def __if_condition(self, if_ast):
         condition = self.__eval_expr(if_ast.get("condition"))
+        if condition.type() != Type.BOOL:
+            super().error(ErrorType.TYPE_ERROR, "If condition must be a boolean expr")
         statements = if_ast.get("statements")
         else_statements = (
             if_ast.get("else_statements") if if_ast.get("else_statements") else []
