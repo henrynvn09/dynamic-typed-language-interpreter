@@ -119,6 +119,8 @@ class Interpreter(InterpreterBase):
             return self.__call_print(call_node)
         if func_name == "inputi":
             return self.__call_input(call_node)
+        if func_name == "inputs":
+            return self.__call_input(call_node)
 
         return self.__run_function(func_name, func_args)
 
@@ -141,7 +143,9 @@ class Interpreter(InterpreterBase):
         inp = super().get_input()
         if call_ast.get("name") == "inputi":
             return Value(Type.INT, int(inp))
-        # we can support inputs here later
+        # input string
+        if call_ast.get("name") == "inputs":
+            return Value(Type.STRING, inp)
 
     def __assign(self, assign_ast):
         var_name = assign_ast.get("name")

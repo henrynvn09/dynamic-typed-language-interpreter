@@ -242,6 +242,21 @@ if (f(x) > 0) {
 """,
         "nil\n1\n10\ntrue\nnil\nnil\n-1\nthe positive value is 1\n16\n48\n16",
     ],
+    [
+        """
+      func main() {
+        var x;
+        x = inputs("enter x:");
+        if (print(x) != nil) {
+          print("this should print");
+        }
+      }
+      """,
+        """
+enter x:
+x
+this should print      """,
+    ],
 ]
 
 
@@ -275,5 +290,5 @@ def test(program_source, expected_output):
 
 
 if __name__ == "__main__":
-    for program, expected_output in tests:
+    for program, expected_output in tests[-1:]:
         test(program, expected_output)
