@@ -4,7 +4,8 @@
 from brewparse import parse_program
 from element import Element
 from interpreter_ import Interpreter
-
+from io import StringIO  # Python3 use:
+import sys
 
 tests = [
     [
@@ -23,7 +24,7 @@ func main() {
   var a;
   a = 5 + 10;
   print(a);
-  print("that's all!");
+  print("That's all!");
 }
         """,
         """
@@ -40,7 +41,7 @@ That's all!
 }
         """,
         """
-        the answer is: 9!
+        The answer is: 9!
         """,
     ],
     [
@@ -54,8 +55,7 @@ That's all!
 	bar = 3 + foo;
 	bletch = 3 - (5 + 2);
 	prompt = "enter a number: ";
-	boo = inputi();
-	boo = inputi("Enter a number: ");
+	boo = 7;
     var b;
     var a;
     b = 4;
@@ -75,16 +75,11 @@ That's all!
     s = ((5 + (6 - 3)) - ((2 - 3) - (1 - 7)));
     print(s);
     print("x + s -2 = ", (x + s) - 2);
-    print("inputi = ", inputi());
+    print("inputi = ", 7);
 }
 """,
         """
-        11
-        barfoo
-        3
-        3
-        x + s -2 = 4
-        inputi = ...
+        hello world!\nthe answer is:4\nthe answer is: 3!\n11\nbarfoo\n3\n3\nx + s -2 = 4\ninputi = 7
         """,
     ],
     [
@@ -98,7 +93,7 @@ func bar(a,b) {
 func main() {
   bar(5);
   bar("hi");
-  bar(True || False);
+  bar(true || false);
     bletch(1,3,2+4);
 }
 func bletch(a,b,c) {
@@ -106,7 +101,11 @@ func bletch(a,b,c) {
 }
 
 """,
-        "what u input",
+        """
+        5
+hi
+true
+The answer is: 19""",
     ],
     [
         """
@@ -126,7 +125,7 @@ func bletch(a,b,c) {
   print("The answer is: ", a+b*c);
 }
 """,
-        "what u input",
+        "5\nhi\n3\nThe answer is: 19",
     ],
     [
         """
@@ -187,6 +186,7 @@ func bar(a) {
 func main() {
    var val;
    val = nil;
+   print("hello");
    if (bar(3) != 2) { print("this should print!"); }
 }
 
@@ -251,9 +251,18 @@ def test(program_source, expected_output):
     # print(program_source)
     # this is how you use our parser to parse a valid Brewin program into an AST
 
+    # redirect the output to a variable
+    old_stdout = sys.stdout
+    sys.stdout = mystdout = StringIO()
+
     interpreter = Interpreter()
     interpreter.run(program_source)
 
+    out = mystdout.getvalue().strip()
+
+    # redirect the output back to stdout
+    sys.stdout = old_stdout
+    print(out)
     print("-" * 40)
     print("Expected output:")
     clean_output = expected_output.strip()
@@ -261,8 +270,10 @@ def test(program_source, expected_output):
         clean_output = clean_output.replace("\n ", "\n")
     print(clean_output)
     print("=" * 40)
+    sys.stdout = old_stdout
+    assert out == clean_output
 
 
 if __name__ == "__main__":
-    for program, expected_output in tests[-1:]:
+    for program, expected_output in tests:
         test(program, expected_output)
