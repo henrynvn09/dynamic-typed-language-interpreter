@@ -9,6 +9,11 @@ from element import Element
 from copy import deepcopy
 
 
+class ScopeType:
+    FUNCTION = "function"
+    BLOCK = "block"
+
+
 # Main interpreter class
 class Interpreter(InterpreterBase):
     # constants
@@ -22,7 +27,7 @@ class Interpreter(InterpreterBase):
         self.trace_output = trace_output
         self.__setup_ops()
         self.func_name_to_ast = {}  # dict of function names to its node
-        self.function_stack = []  # stack of function call
+        self.variable_scope_stack = []  # stack of function call
         self.env = None  # EnvironmentManager of the current function scope
 
     # run a program that's provided in a string
@@ -44,20 +49,24 @@ class Interpreter(InterpreterBase):
             func_def.get("name"), func_def.get("args"), evaluated_args
         )
         _, return_val = self.__run_statements(func_def.get("statements"))
-        self.__destroy_function_scope()
+        self.__destroy_scope()
         return return_val if return_val is not None else Value(Type.NIL, None)
 
     def __create_new_function_scope(self, func_name, args, values):
         """Initialize new variable scope for a function"""
-        self.function_stack.append((func_name, EnvironmentManager()))
-        self.env = self.function_stack[-1][1]  # current environment is top of stack
+        self.variable_scope_stack.append((ScopeType.FUNCTION, EnvironmentManager()))
+        self.env = self.variable_scope_stack[-1][
+            1
+        ]  # current environment is top of stack
         for arg, value in zip(args, values):
             self.__arg_def(arg.get("name"), value)
 
-    def __destroy_function_scope(self):
+    def __destroy_scope(self):
         """Destroy the current function scope, doesn't check errors"""
-        self.function_stack.pop()
-        self.env = self.function_stack[-1][1] if self.function_stack else None
+        self.variable_scope_stack.pop()
+        self.env = (
+            self.variable_scope_stack[-1][1] if self.variable_scope_stack else None
+        )
 
     def __set_up_function_table(self, ast):
         """function table is a dictionary of (function name, number of arguments) to the AST node"""
