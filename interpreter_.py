@@ -107,7 +107,10 @@ class Interpreter(InterpreterBase):
                 self.__destroy_top_scope()
                 return True, self.__return_value(statement)
             elif statement.elem_type == InterpreterBase.FOR_NODE:
-                self.__for_loop(statement)
+                is_return, return_value = self.__for_loop(statement)
+                if is_return:
+                    self.__destroy_top_scope()
+                    return is_return, return_value
 
         # destroy block scope
         self.__destroy_top_scope()
@@ -124,7 +127,7 @@ class Interpreter(InterpreterBase):
         statements = for_ast.get("statements")
 
         self.__create_new_block_scope()
-        self.__arg_def(init.get("name"), self.__eval_expr(init.get("expression")))
+        self.__assign(init)
 
         if self.__eval_expr(condition).type() != Type.BOOL:
             super().error(
@@ -132,9 +135,13 @@ class Interpreter(InterpreterBase):
             )
 
         while self.__eval_expr(condition).value():
-            self.__run_statements(statements)
+            is_return, return_value = self.__run_statements(statements)
+            if is_return:
+                self.__destroy_top_scope()
+                return is_return, return_value
             self.__run_statements([update])
         self.__destroy_top_scope()
+        return False, None
 
     def __if_condition(self, if_ast):
         condition = self.__eval_expr(if_ast.get("condition"))

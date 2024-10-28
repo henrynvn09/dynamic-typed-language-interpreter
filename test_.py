@@ -348,27 +348,23 @@ func main() {
     ],
     [
         """
-func main() {
-  print(!4324);
-  if (true) {
-    print("1");
-    if (true) {
-      print("2");
-      if (true) {
-        print("3");
-        for (i=0; i < 3; i=i+1) {
-          print(i);
-          return;
+func compute() {
+    var i;
+    for (i = 1; i <= 5; i = i + 1) {
+        var j;
+        for (j = 1; j <= 5; j = j + 1) {
+            if (i * j == 6) {
+                return i * 10 + j;
+            }
         }
-      }
     }
-  } else {
-    print("false");
-  }
+    return -1;
 }
 
-     """,
-        "true",
+func main() {
+    print(compute());
+}   """,
+        "23",
     ],
 ]
 
@@ -399,9 +395,9 @@ def test(program_source, expected_output):
     print(clean_output)
     print("=" * 40)
     sys.stdout = old_stdout
-    # assert out == clean_output
+    assert out == clean_output
 
 
 if __name__ == "__main__":
-    for program, expected_output in tests[-1:]:
+    for program, expected_output in tests[:]:
         test(program, expected_output)
