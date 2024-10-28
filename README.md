@@ -35,15 +35,6 @@ The recursive nature of the AST traversal allows the interpreter to dynamically 
 6. **Function Calls**: Allows function calls within expressions, supporting complex expressions and nesting.
 7. **Constants and Variables**: Allows the use of boolean, integer, and string constants, including handling of negative values.
 
-## Citations
-- **External Code Use**: The following code snippet was found and adapted from an online source:
-  ```python
-  # Citation: The following code was found on stackoverflow.com/questions/12345...
-  def example_function():
-      pass
-  # End of copied code
-  ```
-
 ## Licensing and Attribution
 
 This is an unlicensed repository; even though the source code is public, it is **not** governed by an open-source license.
