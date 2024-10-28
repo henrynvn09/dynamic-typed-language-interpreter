@@ -130,6 +130,7 @@ class Interpreter(InterpreterBase):
             result = self.__eval_expr(arg)  # result is a Value object
             output = output + get_printable(result)
         super().output(output)
+        return Value(Type.NIL, None)
 
     def __call_input(self, call_ast):
         args = call_ast.get("args")
@@ -171,7 +172,7 @@ class Interpreter(InterpreterBase):
             )
 
     def __eval_expr(self, expr_ast):
-        if expr_ast is None:
+        if expr_ast.elem_type == InterpreterBase.NIL_NODE:
             return Value(Type.NIL, None)
         if expr_ast.elem_type == InterpreterBase.INT_NODE:
             return Value(Type.INT, expr_ast.get("val"))
@@ -293,3 +294,8 @@ class Interpreter(InterpreterBase):
         #  unary operations
         self.op_to_lambda[Type.INT]["neg"] = lambda x: Value(x.type(), -x.value())
         self.op_to_lambda[Type.BOOL]["!"] = lambda x: Value(x.type(), not x.value())
+
+        # nil operations
+        self.op_to_lambda[Type.NIL] = {}
+        self.op_to_lambda[Type.NIL]["=="] = lambda x, y: Value(Type.BOOL, True)
+        self.op_to_lambda[Type.NIL]["!="] = lambda x, y: Value(Type.BOOL, False)

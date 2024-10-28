@@ -247,7 +247,7 @@ if (f(x) > 0) {
       func main() {
         var x;
         x = inputs("enter x:");
-        if (print(x) != nil) {
+        if (print(x) == nil) {
           print("this should print");
         }
       }
