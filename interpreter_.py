@@ -220,7 +220,7 @@ class Interpreter(InterpreterBase):
             )
 
     def __eval_expr(self, expr_ast):
-        if expr_ast.elem_type == InterpreterBase.NIL_NODE:
+        if expr_ast is None or expr_ast.elem_type == InterpreterBase.NIL_NODE:
             return Value(Type.NIL, None)
         if expr_ast.elem_type == InterpreterBase.INT_NODE:
             return Value(Type.INT, expr_ast.get("val"))
@@ -251,7 +251,7 @@ class Interpreter(InterpreterBase):
         if arith_ast.elem_type not in self.op_to_lambda[value_obj.type()]:
             super().error(
                 ErrorType.TYPE_ERROR,
-                f"Incompatible operator {arith_ast.get_type} for type {value_obj.type()}",
+                f"Incompatible operator {arith_ast.elem_type} for type {value_obj.type()}",
             )
         f = self.op_to_lambda[value_obj.type()][arith_ast.elem_type]
         return f(value_obj)
@@ -279,7 +279,7 @@ class Interpreter(InterpreterBase):
         if arith_ast.elem_type not in self.op_to_lambda[left_value_obj.type()]:
             super().error(
                 ErrorType.TYPE_ERROR,
-                f"Incompatible operator {arith_ast.get_type} for type {left_value_obj.type()}",
+                f"Incompatible operator {arith_ast.elem_type} for type {left_value_obj.type()}",
             )
         f = self.op_to_lambda[left_value_obj.type()][arith_ast.elem_type]
         return f(left_value_obj, right_value_obj)
