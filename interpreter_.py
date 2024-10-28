@@ -2,7 +2,7 @@
 # - printing out a nil value is undefined
 
 from env_ import EnvironmentManager
-from type_value_ import Type, Value, create_value, get_printable
+from type_value_ import Type, Value, get_printable
 from intbase import InterpreterBase, ErrorType
 from brewparse import parse_program
 from element import Element

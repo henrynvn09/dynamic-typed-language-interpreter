@@ -22,19 +22,6 @@ class Value:
         return self.t
 
 
-def create_value(val):
-    if val == InterpreterBase.TRUE_DEF:
-        return Value(Type.BOOL, True)
-    elif val == InterpreterBase.FALSE_DEF:
-        return Value(Type.BOOL, False)
-    elif isinstance(val, str):
-        return Value(Type.STRING, val)
-    elif isinstance(val, int):
-        return Value(Type.INT, val)
-    else:
-        raise ValueError("Unknown value type")
-
-
 def get_printable(val):
     if val.type() == Type.NIL:
         return "nil"

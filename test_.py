@@ -244,18 +244,22 @@ if (f(x) > 0) {
     ],
     [
         """
+      func recursion(x) {
+  if (x == 0) {
+    return 0;
+  }
+  return x + recursion(x-1);
+}
       func main() {
         var x;
-        x = inputs("enter x:");
+        x = "x";
         if (print(x) == nil) {
           print("this should print");
         }
+        print(recursion(5));
       }
       """,
-        """
-enter x:
-x
-this should print      """,
+        "x\nthis should print\n15",
     ],
 ]
 
