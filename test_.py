@@ -312,6 +312,49 @@ for (i=0; i+3 < 5; i=i+1) {
 """,
         "0\n1",
     ],
+    [
+        """
+     func foo() {
+ print(1);
+}
+
+func bar() {
+ return nil;
+}
+
+func main() {
+ var x;
+ x = foo();
+ if (x == nil) {
+  print(2);
+ }
+ var y;
+ y = bar();
+ if (y == nil) {
+  print(3);
+ }
+ 
+}
+
+/*
+*OUT*
+1
+2
+3
+*OUT*
+*/
+     """,
+        "1\n2\n3",
+    ],
+    [
+        """
+func main() {
+  print(("123" + "456") == "123456");
+}
+
+     """,
+        "true",
+    ],
 ]
 
 

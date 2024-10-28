@@ -101,8 +101,10 @@ class Interpreter(InterpreterBase):
             elif statement.elem_type == InterpreterBase.IF_NODE:
                 is_return, return_value = self.__if_condition(statement)
                 if is_return:
+                    self.__destroy_top_scope()
                     return is_return, return_value
             elif statement.elem_type == InterpreterBase.RETURN_NODE:
+                self.__destroy_top_scope()
                 return True, self.__return_value(statement)
             elif statement.elem_type == InterpreterBase.FOR_NODE:
                 self.__for_loop(statement)
@@ -322,10 +324,10 @@ class Interpreter(InterpreterBase):
             x.type(), x.value() + y.value()
         )
         self.op_to_lambda[Type.STRING]["=="] = lambda x, y: Value(
-            x.type(), x.value() == y.value()
+            Type.BOOL, x.value() == y.value()
         )
         self.op_to_lambda[Type.STRING]["!="] = lambda x, y: Value(
-            x.type(), x.value() != y.value()
+            Type.BOOL, x.value() != y.value()
         )
         # set up operations on booleans
         self.op_to_lambda[Type.BOOL] = {}
@@ -333,18 +335,18 @@ class Interpreter(InterpreterBase):
             x.type(), x.value() or y.value()
         )
         self.op_to_lambda[Type.BOOL]["&&"] = lambda x, y: Value(
-            x.type(), x.value() and y.value()
+            Type.BOOL, x.value() and y.value()
         )
         self.op_to_lambda[Type.BOOL]["=="] = lambda x, y: Value(
-            x.type(), x.value() == y.value()
+            Type.BOOL, x.value() == y.value()
         )
         self.op_to_lambda[Type.BOOL]["!="] = lambda x, y: Value(
-            x.type(), x.value() != y.value()
+            Type.BOOL, x.value() != y.value()
         )
 
         #  unary operations
-        self.op_to_lambda[Type.INT]["neg"] = lambda x: Value(x.type(), -x.value())
-        self.op_to_lambda[Type.BOOL]["!"] = lambda x: Value(x.type(), not x.value())
+        self.op_to_lambda[Type.INT]["neg"] = lambda x: Value(Type.INT, -x.value())
+        self.op_to_lambda[Type.BOOL]["!"] = lambda x: Value(Type.BOOL, not x.value())
 
         # nil operations
         self.op_to_lambda[Type.NIL] = {}
