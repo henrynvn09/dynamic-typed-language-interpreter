@@ -211,6 +211,9 @@ func foo(x) {
   print("this will not print either");
   return 5*x;
 }
+func f(x) {
+  return x;
+}
 
 func main() {
   print(bar(0));
@@ -220,10 +223,24 @@ func main() {
   print(bar(4));
   print(bar(5));
   print("the positive value is ", foo(-1));
+  var x;
+  x = 16;
+  if (f(x) > 5) {
+  print(x);
+  if (x < 30 && x > 10) {
+    print(3*x);
+  }
+}
+if (f(x) > 0) {
+  print(x);
+} else {
+  print(-x);
+}
+
 }
 
 """,
-        "nil\n1\n10\ntrue\nnil\nnil",
+        "nil\n1\n10\ntrue\nnil\nnil\nthe positive value is 1\n16\n48\n16",
     ],
 ]
 

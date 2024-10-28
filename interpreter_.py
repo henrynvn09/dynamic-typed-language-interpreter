@@ -38,24 +38,26 @@ class Interpreter(InterpreterBase):
 
     def __run_function(self, func_name, passed_arguments=[]):
         """run a function based on name and list of arguments"""
+        evaluated_args = [deepcopy(self.__eval_expr(arg)) for arg in passed_arguments]
         func_def: Element = self.__get_func(func_name, passed_arguments)
         self.__create_new_function_scope(
-            func_def.get("name"), func_def.get("args"), passed_arguments
+            func_def.get("name"), func_def.get("args"), evaluated_args
         )
         _, return_val = self.__run_statements(func_def.get("statements"))
         self.__destroy_function_scope()
         return return_val if return_val is not None else Value(Type.NIL, None)
 
-    def __create_new_function_scope(self, func_name, args, passed_arguments):
+    def __create_new_function_scope(self, func_name, args, values):
         """Initialize new variable scope for a function"""
         self.function_stack.append((func_name, EnvironmentManager()))
         self.env = self.function_stack[-1][1]  # current environment is top of stack
-        for arg, value in zip(args, passed_arguments):
-            self.__arg_assign(arg.get("name"), value)
+        for arg, value in zip(args, values):
+            self.__arg_def(arg.get("name"), value)
 
     def __destroy_function_scope(self):
         """Destroy the current function scope, doesn't check errors"""
         self.function_stack.pop()
+        self.env = self.function_stack[-1][1] if self.function_stack else None
 
     def __set_up_function_table(self, ast):
         """function table is a dictionary of (function name, number of arguments) to the AST node"""
@@ -154,9 +156,9 @@ class Interpreter(InterpreterBase):
                 ErrorType.NAME_ERROR, f"Duplicate definition for variable {var_name}"
             )
 
-    def __arg_assign(self, var_name, value_obj_original: Element):
-        new_val = self.__eval_expr(value_obj_original)
-        if not self.env.create(var_name, new_val):
+    def __arg_def(self, var_name, value):
+        """Define a new argument in the current function scope with passed value node"""
+        if not self.env.create(var_name, value):
             super().error(
                 ErrorType.NAME_ERROR,
                 f"Duplicate definition for function argument name {var_name}",
