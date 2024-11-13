@@ -2,7 +2,7 @@
 # - printing out a nil value is undefined
 
 from env_ import EnvironmentManager
-from type_value_ import Type, Value, get_printable
+from type_value_ import Type, Value, get_printable, get_default_value_obj
 from intbase import InterpreterBase, ErrorType
 from brewparse import parse_program
 from element import Element
@@ -213,7 +213,13 @@ class Interpreter(InterpreterBase):
 
     def __var_def(self, var_ast):
         var_name = var_ast.get("name")
-        if not self.env.create(var_name, Value(Type.INT, 0)):
+        var_type = var_ast.get("var_type")
+
+        if get_default_value_obj(var_type) is None:
+            super().error(
+                ErrorType.TYPE_ERROR, f"Unknown type {var_type} for variable {var_name}"
+            )
+        if not self.env.create(var_name, get_default_value_obj(var_type)):
             super().error(
                 ErrorType.NAME_ERROR, f"Duplicate definition for variable {var_name}"
             )
