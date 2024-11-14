@@ -36,7 +36,7 @@ def get_printable(val):
     return None
 
 
-def get_default_value_obj(val_type):
+def create_default_value_obj(val_type):
     if val_type == Type.INT:
         return Value(Type.INT, 0)
     if val_type == Type.STRING:
