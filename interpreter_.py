@@ -38,10 +38,19 @@ class Interpreter(InterpreterBase):
         self.__set_up_function_table(ast)
         self.__run_function("main")
 
-    def __run_function(self, func_name, passed_arguments=[]):
+    def __run_function(self, func_name, passed_arguments=list[Element]):
         """run a function based on name and list of arguments"""
-        evaluated_args = [deepcopy(self.__eval_expr(arg)) for arg in passed_arguments]
         func_def: Element = self.__get_func(func_name, passed_arguments)
+        evaluated_args = [deepcopy(self.__eval_expr(arg)) for arg in passed_arguments]
+
+        # check if the type of the arguments passed in matches the type of the arguments in the function definition
+        for val, arg_type in zip(evaluated_args, func_def.get("args")):
+            if val.type() != arg_type.get("var_type"):
+                super().error(
+                    ErrorType.TYPE_ERROR,
+                    f"Argument type mismatch in function {func_name} and argument {arg_type.get('name')}",
+                )
+
         self.__create_new_function_scope(
             func_def.get("name"), func_def.get("args"), evaluated_args
         )
