@@ -7,6 +7,7 @@ from intbase import InterpreterBase, ErrorType
 from brewparse import parse_program
 from element import Element
 from copy import deepcopy
+from struct_ import Struct
 
 
 class ScopeType:
@@ -29,6 +30,9 @@ class Interpreter(InterpreterBase):
         self.func_name_to_ast = {}  # dict of function names to its node
         self.variable_scope_stack = []  # stack of function call
         self.env = None  # EnvironmentManager of the current function scope
+        self.structure_table = (
+            {}
+        )  # dictionary of structure names to their template AST nodes
 
     # run a program that's provided in a string
     # usese the provided Parser found in brewparse.py to parse the program
@@ -36,7 +40,13 @@ class Interpreter(InterpreterBase):
     def run(self, program):
         ast = parse_program(program)
         self.__set_up_function_table(ast)
+        self.__set_up_structure_table(ast.get("structs"))
         self.__run_function("main")
+
+    def __set_up_structure_table(self, structs):
+        """Structure table is a dictionary of (structure_name, struct_object)"""
+        for struct_def in structs:
+            self.structure_table[struct_def.get("name")] = Struct(struct_def)
 
     def __run_function(self, func_name, passed_arguments=list[Element]):
         """run a function based on name and list of arguments"""
