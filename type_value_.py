@@ -36,14 +36,5 @@ def get_printable(val):
     return None
 
 
-def create_default_value_obj(val_type):
-    if val_type == Type.INT:
-        return Value(Type.INT, 0)
-    if val_type == Type.STRING:
-        return Value(Type.STRING, "")
-    if val_type == Type.BOOL:
-        return Value(Type.BOOL, False)
-    if val_type == Type.NIL:
-        return Value(Type.NIL)
-    # This should never happen
-    return None
+def is_generic_type(val_type):
+    return val_type in vars(Type).values()

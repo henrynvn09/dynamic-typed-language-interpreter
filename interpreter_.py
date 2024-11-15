@@ -2,7 +2,12 @@
 # - printing out a nil value is undefined
 
 from env_ import EnvironmentManager
-from type_value_ import Type, Value, get_printable, create_default_value_obj
+from type_value_ import (
+    Type,
+    Value,
+    get_printable,
+    is_generic_type,
+)
 from intbase import InterpreterBase, ErrorType
 from brewparse import parse_program
 from element import Element
@@ -46,9 +51,22 @@ class Interpreter(InterpreterBase):
     def __set_up_structure_table(self, structs):
         """Structure table is a dictionary of (structure_name, struct_object)"""
         for struct_def in structs:
-            self.structure_table[struct_def.get("name")] = Struct(struct_def)
+            fields = dict()
+            self.structure_table[struct_def.get("name")] = fields
 
-    def __run_function(self, func_name, passed_arguments=list[Element]):
+            for field in struct_def.get("fields"):
+                # if the field type is not defined, raise an error
+                if (
+                    not is_generic_type(field.get("var_type"))
+                    and field.get("var_type") not in self.structure_table
+                ):
+                    super().error(
+                        ErrorType.TYPE_ERROR, f"Unknown type {field} for field"
+                    )
+                else:
+                    fields[field.get("name")] = field.get("var_type")
+
+    def __run_function(self, func_name, passed_arguments: list[Element] = []):
         """run a function based on name and list of arguments"""
         func_def: Element = self.__get_func(func_name, passed_arguments)
         evaluated_args = [deepcopy(self.__eval_expr(arg)) for arg in passed_arguments]
@@ -64,7 +82,24 @@ class Interpreter(InterpreterBase):
         self.__create_new_function_scope(
             func_def.get("name"), func_def.get("args"), evaluated_args
         )
-        _, return_val = self.__run_statements(func_def.get("statements"))
+        has_return, return_val = self.__run_statements(func_def.get("statements"))
+
+        # if the function return_type is void, it must not have return value
+        if func_def.get("return_type") == Type.NIL and return_val is None:
+            super().error(
+                ErrorType.TYPE_ERROR,
+                f"Function {func_name} must return a value of type {func_def.get('return_type')}",
+            )
+
+        # if the function return_type is not void, it must have a return value and the type must match
+        if func_def.get("return_type") != Type.NIL and (
+            not has_return or return_val.type() != func_def.get("return_type")
+        ):
+            super().error(
+                ErrorType.TYPE_ERROR,
+                f"Function {func_name} must return a value of type {func_def.get('return_type')}",
+            )
+
         self.__destroy_top_scope()
         return return_val if return_val is not None else Value(Type.NIL, None)
 
@@ -222,8 +257,13 @@ class Interpreter(InterpreterBase):
         # look up variable from current scope up to the closest function scope
         for scope_type, env_iterator in reversed(self.variable_scope_stack):
             if env_iterator.get(var_name) is not None:
-                env_iterator.set(var_name, value_obj)
-                break
+                # try setting the value to var, if it fails, it's a type error
+                try:
+                    env_iterator.set(var_name, value_obj)
+                except TypeError as e:
+                    super().error(ErrorType.TYPE_ERROR, str(e))
+                finally:
+                    break
             # when reaching the function scope but the variable is not found
             elif scope_type == ScopeType.FUNCTION:
                 super().error(
@@ -234,11 +274,9 @@ class Interpreter(InterpreterBase):
         var_name = var_ast.get("name")
         var_type = var_ast.get("var_type")
 
-        if create_default_value_obj(var_type) is None:
-            super().error(
-                ErrorType.TYPE_ERROR, f"Unknown type {var_type} for variable {var_name}"
-            )
-        if not self.env.create(var_name, create_default_value_obj(var_type)):
+        default_value = self.__create_default_value_obj(var_type)
+
+        if not self.env.create(var_name, default_value):
             super().error(
                 ErrorType.NAME_ERROR, f"Duplicate definition for variable {var_name}"
             )
@@ -251,7 +289,7 @@ class Interpreter(InterpreterBase):
                 f"Duplicate definition for function argument name {var_name}",
             )
 
-    def __eval_expr(self, expr_ast):
+    def __eval_expr(self, expr_ast) -> Value:
         if expr_ast is None or expr_ast.elem_type == InterpreterBase.NIL_NODE:
             return Value(Type.NIL, None)
         if expr_ast.elem_type == InterpreterBase.INT_NODE:
@@ -277,6 +315,8 @@ class Interpreter(InterpreterBase):
             return self.__eval_unary_op(expr_ast)
         if expr_ast.elem_type in Interpreter.BIN_OPS:
             return self.__eval_op(expr_ast)
+        if expr_ast.elem_type == InterpreterBase.NEW_NODE:
+            return True, self.__new_struct(expr_ast)
 
     def __eval_unary_op(self, arith_ast):
         value_obj = self.__eval_expr(arith_ast.get("op1"))
@@ -384,3 +424,40 @@ class Interpreter(InterpreterBase):
         self.op_to_lambda[Type.NIL] = {}
         self.op_to_lambda[Type.NIL]["=="] = lambda x, y: Value(Type.BOOL, True)
         self.op_to_lambda[Type.NIL]["!="] = lambda x, y: Value(Type.BOOL, False)
+
+    def __create_default_value_obj(self, val_type):
+        if val_type == Type.INT:
+            return Value(Type.INT, 0)
+        if val_type == Type.STRING:
+            return Value(Type.STRING, "")
+        if val_type == Type.BOOL:
+            return Value(Type.BOOL, False)
+        if val_type == Type.NIL:
+            return Value(Type.NIL)
+
+        if val_type in self.structure_table:
+            return Value(val_type, Type.NIL)
+        # This should never happen
+
+        super().error(ErrorType.TYPE_ERROR, f"Unknown type {val_type}")
+        return None
+
+    def __new_struct(self, ast):
+        """Generating a new struct object from the AST"""
+        self.__debug(f"Creating new struct object from AST {ast}")
+
+        struct_type = ast.get("var_type")
+        if struct_type not in self.structure_table:
+            super().error(
+                ErrorType.TYPE_ERROR,
+                f"Unknown struct {ast.get('var_type')} on new operation",
+            )
+
+        struct_obj = Struct(
+            self.structure_table[struct_type], self.__create_default_value_obj
+        )
+        return struct_obj
+
+    def __debug(self, message):
+        if self.trace_output:
+            print(message)

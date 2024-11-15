@@ -368,22 +368,30 @@ func main() {
     ],
     [
         """
-       func main() : void {
-            var eyeballs: int;
-            var theory: string;
-            var old: bool;
-            var n: node;  /* assuming we have defined a node structure - see below */
-            print(foo());
-            print(bar());
-        }
+     struct flea {
+  age: int;
+  infected : bool;
+}
 
-        func foo() : int {
-          return; /* returns 0 */
-        }
+struct dog {
+  name: string;
+  vaccinated: bool;  
+  companion: flea;
+}
 
-        func bar() : bool {
-          print("bar");
-        }  /* returns false*/
+func main() : void {
+  var d: dog;     
+  d = new dog;   /* sets d object reference to point to a dog structure */
+
+  print(d.vaccinated); /* prints false - default bool value */
+  print(d.companion); /* prints nil - default struct object reference */
+
+  /* we may now set d's fields */
+  d.name = "Koda";
+  d.vaccinated = true;
+  d.companion = new flea;
+}
+        
 """,
         """
 0
