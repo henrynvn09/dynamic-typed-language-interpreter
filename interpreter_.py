@@ -440,6 +440,17 @@ class Interpreter(InterpreterBase):
                 f"Cannot compare struct with non-struct type other than nil",
             )
 
+        # if both values are structs but diff types, raise an error
+        if (
+            left_value_obj.type() != right_value_obj.type()
+            and self.__is_struct(left_value_obj.type())
+            and self.__is_struct(right_value_obj.type())
+        ):
+            super().error(
+                ErrorType.TYPE_ERROR,
+                f"Cannot compare struct {left_value_obj.type()} with struct {right_value_obj.type()}",
+            )
+
         if arith_ast.elem_type == "==":
             # if one of the values is nil, return the opposite of the other value
             if left_value_obj.type() != right_value_obj.type():
