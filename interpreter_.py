@@ -12,7 +12,7 @@ from type_value_ import (
 from intbase import InterpreterBase, ErrorType
 from brewparse import parse_program
 from element import Element
-from copy import deepcopy
+from copy import copy
 from struct_ import Struct
 
 
@@ -71,7 +71,7 @@ class Interpreter(InterpreterBase):
         """run a function based on name and list of arguments"""
         func_def: Element = self.__get_func(func_name, passed_arguments)
         evaluated_args = [
-            deepcopy(self.__eval_expr(arg, arg_def.get("var_type")))
+            copy(self.__eval_expr(arg, arg_def.get("var_type")))
             for arg, arg_def in zip(passed_arguments, func_def.get("args"))
         ]
 
