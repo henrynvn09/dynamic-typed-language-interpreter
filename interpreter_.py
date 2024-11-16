@@ -361,7 +361,7 @@ class Interpreter(InterpreterBase):
             # TODO: check if this is correct
             return self.__create_default_value_obj(target_type)
         if expr_ast.elem_type == InterpreterBase.NIL_NODE:
-            return Value(Type.NIL, None)
+            res = Value(Type.NIL, None)
         if expr_ast.elem_type == InterpreterBase.INT_NODE:
             res = Value(Type.INT, expr_ast.get("val"))
         if expr_ast.elem_type == InterpreterBase.STRING_NODE:

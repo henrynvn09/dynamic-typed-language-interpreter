@@ -450,7 +450,7 @@ func main() : void {
   var p:person;
   p = new person;
   p.age = 18;
-  print(foo(x, p));
+  print(foo(x, nil));
   print(x);      /* prints 5, since x is passed by value */
   print(p.age);  /* prints 19, since p is passed by object reference */
 }
