@@ -189,8 +189,9 @@ class Interpreter(InterpreterBase):
                     self.__destroy_top_scope()
                     return is_return, return_value
             elif statement.elem_type == InterpreterBase.RETURN_NODE:
+                val = self.__return_value(statement, return_type)
                 self.__destroy_top_scope()
-                return True, self.__return_value(statement, return_type)
+                return True, val
             elif statement.elem_type == InterpreterBase.FOR_NODE:
                 is_return, return_value = self.__for_loop(statement, return_type)
                 if is_return:
@@ -310,7 +311,8 @@ class Interpreter(InterpreterBase):
                             raise TypeError(
                                 f"Cannot assign value of type for struct attribute {value_obj.type()} to {value_ast.type()}"
                             )
-                        value_ast.set_value(value_obj.value())
+
+                        struct_ast.value().set_field(field_name, value_obj)
                     break
                 except TypeError as e:
                     super().error(ErrorType.TYPE_ERROR, str(e))
@@ -421,7 +423,7 @@ class Interpreter(InterpreterBase):
                 f"Cannot compare struct with non-struct type other than nil",
             )
 
-        if arith_ast.elem_type in ["==", "!="]:
+        if arith_ast.elem_type == "==":
             # if one of the values is nil, return the opposite of the other value
             if left_value_obj.type() != right_value_obj.type():
                 return Value(
@@ -429,6 +431,17 @@ class Interpreter(InterpreterBase):
                 )
             # if both values are structs, compare their references
             return Value(Type.BOOL, left_value_obj.value() is right_value_obj.value())
+
+        if arith_ast.elem_type in "!=":
+            # if one of the values is nil, return the opposite of the other value
+            if left_value_obj.type() != right_value_obj.type():
+                return Value(
+                    Type.BOOL, left_value_obj.value() != right_value_obj.value()
+                )
+            # if both values are structs, compare their references
+            return Value(
+                Type.BOOL, left_value_obj.value() is not right_value_obj.value()
+            )
 
     def __eval_op(self, arith_ast):
         left_value_obj = self.__eval_expr(arith_ast.get("op1"), None)

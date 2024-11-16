@@ -1,6 +1,4 @@
-from element import Element
-from type_value_ import Value, Type
-from copy import deepcopy
+from type_value_ import Value
 
 
 class Struct:

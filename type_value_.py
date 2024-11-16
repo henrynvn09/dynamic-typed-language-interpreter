@@ -21,9 +21,6 @@ class Value:
     def type(self):
         return self.t
 
-    def set_value(self, new_value):
-        self.v = new_value
-
 
 def get_printable(val):
     if not val:

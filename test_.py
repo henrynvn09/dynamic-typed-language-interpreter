@@ -102,6 +102,65 @@ func main() : void {
 19
 """,
     ],
+    [
+        """
+  struct list {
+    val: int;
+    next: list;
+}
+
+func cons(val: int, l: list) : list {
+    var h: list;
+    h = new list;
+    h.val = val;
+    h.next = l;
+    return h;
+}
+
+func rev_app(l: list, a: list) : list {
+    if (l == nil) {
+        return a;
+    }
+
+    return rev_app(l.next, cons(l.val, a));
+}
+
+func reverse(l: list) : list {
+    var a: list;
+
+    return rev_app(l, a);
+}
+
+func print_list(l: list): void {
+    var x: list;
+    var n: int;
+    for (x = l; x != nil; x = x.next) {
+        print(x.val);
+        n = n + 1;
+    }
+    print("N=", n);
+}
+
+func main() : void {
+    var n: int;
+    var i: int;
+    var l: list;
+    var r: list;
+
+    n = inputi();
+    for (i = n; i; i = i - 1) {
+        var n: int;
+        n = inputi();
+        l = cons(n, l);
+    }
+    r = reverse(l);
+    print_list(r);
+}
+  """,
+        """
+  idk
+  """,
+    ],
 ]
 
 
@@ -116,7 +175,7 @@ def test(program_source, expected_output, debug=False):
         old_stdout = sys.stdout
         sys.stdout = mystdout = StringIO()
 
-    interpreter = Interpreter()
+    interpreter = Interpreter(trace_output=False)
     interpreter.run(program_source)
 
     if not debug:
@@ -138,5 +197,5 @@ def test(program_source, expected_output, debug=False):
 
 
 if __name__ == "__main__":
-    for program, expected_output in tests[:]:
+    for program, expected_output in tests[-1:]:
         test(program, expected_output, True)
