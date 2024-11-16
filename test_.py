@@ -216,9 +216,12 @@ true
     ],
     [
         """
-  func main() : void {
- print("i should print");
- var x;
+  func foo(a:invinal) : int {
+  print("i shouldn't print");
+}
+
+func main() : void {
+ print("i shouldn't print either");
 }
 
 /*

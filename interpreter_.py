@@ -156,6 +156,7 @@ class Interpreter(InterpreterBase):
                 func_def
             )
 
+            # check if the return type of the function is defined
             if (
                 not is_generic_type(func_def.get("return_type"))
                 and not self.__is_struct(func_def.get("return_type"))
@@ -165,6 +166,16 @@ class Interpreter(InterpreterBase):
                     ErrorType.TYPE_ERROR,
                     f"Unknown type {func_def.get('return_type')} on function {func_def.get('name')} return type",
                 )
+
+            # check if the type of the arguments in the function definition is defined
+            for arg in func_def.get("args"):
+                if not is_generic_type(arg.get("var_type")) and not self.__is_struct(
+                    arg.get("var_type")
+                ):
+                    super().error(
+                        ErrorType.TYPE_ERROR,
+                        f"Unknown type {arg.get('var_type')} for argument {arg.get('name')} in function {func_def.get('name')}",
+                    )
 
     def __get_func(self, name, args):
         """get a function by name and number of arguments"""
