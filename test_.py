@@ -383,15 +383,10 @@ func main() : void {
   var d: dog;     
   d = new dog;   /* sets d object reference to point to a dog structure */
 
-  var i : int;
-
-  print(d.cm); /* prints false - default bool value */
-  print(d.companion); /* prints nil - default struct object reference */
-
-  /* we may now set d's fields */
-  d.name = "Koda";
-  d.vaccinated = true;
   d.companion = new flea;
+  d.companion.age = 5;
+  print(d.companion.age); /* prints false - default bool value */
+ 
 }
         
 """,

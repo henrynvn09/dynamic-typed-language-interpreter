@@ -501,7 +501,10 @@ class Interpreter(InterpreterBase):
             current_field, field_name = field_name.split(".", 1)
 
             try:
-                struct_obj = struct_obj.get_field(current_field)
+                if isinstance(struct_obj, Value):
+                    struct_obj = struct_obj.value().get_field(current_field)
+                else:
+                    struct_obj = struct_obj.get_field(current_field)
             except AttributeError as e:
                 super().error(ErrorType.NAME_ERROR, str(e))
 
