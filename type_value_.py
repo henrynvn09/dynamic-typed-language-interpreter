@@ -45,7 +45,7 @@ def get_printable(val):
 
 
 def is_generic_type(val_type):
-    return val_type in vars(Type).values()
+    return val_type and val_type in vars(Type).values()
 
 
 def is_non_nil_generic_type(val_type):
