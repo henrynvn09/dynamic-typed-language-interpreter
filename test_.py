@@ -262,11 +262,13 @@ def test(program_source, expected_output, debug=False):
 
 files = [
     "v3/fails/Structs-Struct_matches_nil_but_not_void.br",
+    "v3/fails/Type_Validity-Non-Existent_Member_in_Struct.br",
+    "v3/fails/Type_Validity-Primitives_Have_no_Members.br",
 ]
 
 if __name__ == "__main__":
     # for program, expected_output in tests[-1:]:
     #     test(program, expected_output, True)
-    for file in files:
+    for file in files[-1:]:
         with open(f"fall-24-autograder/{file}", "r") as f:
             test(f.read(), "")

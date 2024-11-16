@@ -20,3 +20,6 @@ class Struct:
             )
 
         return self.fields[field_name]
+
+    def field_exists(self, field_name: str):
+        return field_name in self.fields

@@ -381,7 +381,6 @@ class Interpreter(InterpreterBase):
                 ErrorType.TYPE_ERROR, "Cannot evaluate expression to void type"
             )
         if expr_ast is None:
-            # TODO: check if this is correct
             return self.__create_default_value_obj(target_type)
         if expr_ast.elem_type == InterpreterBase.NIL_NODE:
             res = Value(Type.NIL, None)
@@ -630,7 +629,22 @@ class Interpreter(InterpreterBase):
         )
         return Value(struct_type, struct_obj)
 
+    def __check_field_in_struct(self, struct_type, field_name):
+        # verify the struct_type is a struct
+        if struct_type not in self.structure_table:
+            super().error(
+                ErrorType.TYPE_ERROR,
+                f"Unknown struct {struct_type} on field access",
+            )
+        if field_name not in self.structure_table[struct_type]:
+            super().error(
+                ErrorType.NAME_ERROR,
+                f"Field {field_name} does not exist in struct {struct_type}",
+            )
+
     def __get_struct_field_obj(self, struct_ast, field_name):
+        self.__check_field_in_struct(struct_ast.type(), field_name.split(".")[0])
+
         if struct_ast.value() is None:
             super().error(
                 ErrorType.FAULT_ERROR,
