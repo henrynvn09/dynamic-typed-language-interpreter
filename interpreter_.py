@@ -75,13 +75,13 @@ class Interpreter(InterpreterBase):
             for arg, arg_def in zip(passed_arguments, func_def.get("args"))
         ]
 
-        # # check if the type of the arguments passed in matches the type of the arguments in the function definition
-        # for val, arg_type in zip(evaluated_args, ):
-        #     if val.type() != arg_type.get("var_type"):
-        #         super().error(
-        #             ErrorType.TYPE_ERROR,
-        #             f"Argument type mismatch in function {func_name} and argument {arg_type.get('name')}",
-        #         )
+        # check if the type of the arguments passed in matches the type of the arguments in the function definition
+        for val, arg_type in zip(evaluated_args, func_def.get("args")):
+            if val.type() != arg_type.get("var_type"):
+                super().error(
+                    ErrorType.TYPE_ERROR,
+                    f"Argument type mismatch in function {func_name} and argument {arg_type.get('name')}",
+                )
 
         self.__create_new_function_scope(
             func_def.get("name"), func_def.get("args"), evaluated_args
@@ -97,9 +97,15 @@ class Interpreter(InterpreterBase):
                 f"Function {func_name} must return a value of type {func_def.get('return_type')}",
             )
 
-        # if the function return_type is not void, it must have a return value and the type must match
+        # if the function return_type is not void, and there is no return statement or no specific return value
         if func_def.get("return_type") != InterpreterBase.VOID_DEF and (
-            not has_return or return_val.type() != func_def.get("return_type")
+            not has_return or return_val is None
+        ):
+            return_val = self.__create_default_value_obj(func_def.get("return_type"))
+
+        # if the function return_type is not void, and return type isn't match
+        if func_def.get("return_type") != InterpreterBase.VOID_DEF and (
+            return_val.type() != func_def.get("return_type")
         ):
             super().error(
                 ErrorType.TYPE_ERROR,
@@ -332,7 +338,10 @@ class Interpreter(InterpreterBase):
         )
 
     def __eval_expr(self, expr_ast, target_type) -> Value:
-        if expr_ast is None or expr_ast.elem_type == InterpreterBase.NIL_NODE:
+        if expr_ast is None:
+            # TODO: check if this is correct
+            return self.__create_default_value_obj(target_type)
+        if expr_ast.elem_type == InterpreterBase.NIL_NODE:
             return Value(Type.NIL, None)
         if expr_ast.elem_type == InterpreterBase.INT_NODE:
             res = Value(Type.INT, expr_ast.get("val"))
@@ -525,8 +534,10 @@ class Interpreter(InterpreterBase):
 
         if val_type in self.structure_table:
             return Value(val_type)
-        # This should never happen
+        if val_type == InterpreterBase.VOID_DEF:
+            return None
 
+        # This should never happen
         super().error(ErrorType.TYPE_ERROR, f"Unknown type {val_type}")
         return None
 

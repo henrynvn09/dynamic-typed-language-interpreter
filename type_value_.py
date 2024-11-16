@@ -41,7 +41,7 @@ def get_printable(val):
         return "false"
 
     # for structs case of NIL
-    if val.value() == Type.NIL:
+    if not is_generic_type(val.type()) and val.value() == None:
         return "nil"
 
     # we don't have to handle struct not NIL
