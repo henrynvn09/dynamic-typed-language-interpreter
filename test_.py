@@ -189,6 +189,48 @@ func main() : void {
         10
 """,
     ],
+    [
+        """
+       func main() : int {
+  print(5 == true);
+  print(true == 1);
+  print(-5 == true);
+  print(0 == false);
+  print(0 != true);
+
+}
+
+/*
+*OUT*
+true
+true
+true
+true
+true
+*OUT*
+*/
+
+""",
+        """
+""",
+    ],
+    [
+        """
+  func main() : void {
+ print("i should print");
+ var x;
+}
+
+/*
+*OUT*
+ErrorType.TYPE_ERROR
+*OUT*
+*/
+  """,
+        """
+  ErrorType.TYPE_ERROR
+  """,
+    ],
 ]
 
 

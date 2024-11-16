@@ -39,15 +39,19 @@ class Interpreter(InterpreterBase):
             None  # EnvironmentManager of the current function scope
         )
         self.structure_table = dict()  # dictionary of structure names to their struct
+        self.outputs = []
 
     # run a program that's provided in a string
     # usese the provided Parser found in brewparse.py to parse the program
     # into an abstract syntax tree (ast)
     def run(self, program):
         ast = parse_program(program)
+        self.outputs = []
         self.__set_up_structure_table(ast.get("structs"))
         self.__set_up_function_table(ast)
         self.__run_function("main")
+        for output in self.outputs:
+            super().output(output)
 
     def __set_up_structure_table(self, structs):
         """Structure table is a dictionary of (structure_name, struct_object)"""
@@ -265,13 +269,15 @@ class Interpreter(InterpreterBase):
         for arg in call_ast.get("args"):
             result = self.__eval_expr(arg, None)  # result is a Value object
             output = output + get_printable(result)
-        super().output(output)
+        self.outputs.append(output)
+        # super().output(output)
 
     def __call_input(self, call_ast):
         args = call_ast.get("args")
         if args is not None and len(args) == 1:
             result = self.__eval_expr(args[0], None)
-            super().output(get_printable(result))
+            self.outputs.append(get_printable(result))
+            # super().output(get_printable(result))
         elif args is not None and len(args) > 1:
             super().error(
                 ErrorType.NAME_ERROR, "No inputi() function that takes > 1 parameter"
@@ -402,7 +408,7 @@ class Interpreter(InterpreterBase):
         return self.coerce_value(res, target_type)
 
     def __eval_unary_op(self, arith_ast):
-        value_obj = self.__eval_expr(arith_ast.get("op1"), Type.BOOL)
+        value_obj = self.__eval_expr(arith_ast.get("op1"), None)
         if arith_ast.elem_type not in self.op_to_lambda[value_obj.type()]:
             super().error(
                 ErrorType.TYPE_ERROR,
@@ -521,6 +527,12 @@ class Interpreter(InterpreterBase):
         self.op_to_lambda[Type.INT]["!="] = lambda x, y: Value(
             Type.BOOL, x.value() != y.value()
         )
+        self.op_to_lambda[Type.INT]["&&"] = lambda x, y: Value(
+            Type.BOOL, x.value() and y.value()
+        )
+        self.op_to_lambda[Type.INT]["||"] = lambda x, y: Value(
+            Type.BOOL, x.value() or y.value()
+        )
         # set up operations on strings
         self.op_to_lambda[Type.STRING] = {}
         self.op_to_lambda[Type.STRING]["+"] = lambda x, y: Value(
@@ -550,6 +562,9 @@ class Interpreter(InterpreterBase):
         #  unary operations
         self.op_to_lambda[Type.INT]["neg"] = lambda x: Value(Type.INT, -x.value())
         self.op_to_lambda[Type.BOOL]["!"] = lambda x: Value(Type.BOOL, not x.value())
+        self.op_to_lambda[Type.INT]["!"] = lambda x: Value(
+            Type.INT, False if x.value() else True
+        )
 
         # nil operations
         self.op_to_lambda[Type.NIL] = {}
