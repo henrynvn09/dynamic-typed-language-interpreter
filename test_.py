@@ -191,12 +191,23 @@ func main() : void {
     ],
     [
         """
+        struct foo {
+  i:int;
+}
        func main() : int {
   print(5 == true);
   print(true == 1);
   print(-5 == true);
   print(0 == false);
   print(0 != true);
+  
+  var b: foo;
+  print(b == nil);
+  print(b != nil);
+  print(nil == b);
+  print(nil != b);
+  print(nil == nil);
+  print(nil != nil);
 
 }
 
@@ -213,25 +224,6 @@ true
 """,
         """
 """,
-    ],
-    [
-        """
- func foo(a) : int {
-  print("i shouldn't print");
-}
-func main() : void {
- print("i shouldn't print either");
-}
-
-/*
-*OUT*
-ErrorType.TYPE_ERROR
-*OUT*
-*/
-  """,
-        """
-  ErrorType.TYPE_ERROR
-  """,
     ],
 ]
 
@@ -268,6 +260,11 @@ def test(program_source, expected_output, debug=False):
     # assert out == clean_output
 
 
+files = ["v3/fails/Structs-Reference_Hell.br"]
+
 if __name__ == "__main__":
-    for program, expected_output in tests[-1:]:
-        test(program, expected_output, True)
+    # for program, expected_output in tests[-1:]:
+    #     test(program, expected_output, True)
+    for file in files:
+        with open(f"fall-24-autograder/{file}", "r") as f:
+            test(f.read(), "")
