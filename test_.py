@@ -383,7 +383,9 @@ func main() : void {
   var d: dog;     
   d = new dog;   /* sets d object reference to point to a dog structure */
 
-  print(d.vaccinated); /* prints false - default bool value */
+  var i : int;
+
+  print(d.cm); /* prints false - default bool value */
   print(d.companion); /* prints nil - default struct object reference */
 
   /* we may now set d's fields */

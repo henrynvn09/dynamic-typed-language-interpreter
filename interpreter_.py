@@ -34,10 +34,10 @@ class Interpreter(InterpreterBase):
         self.__setup_ops()
         self.func_name_to_ast = {}  # dict of function names to its node
         self.variable_scope_stack = []  # stack of function call
-        self.env = None  # EnvironmentManager of the current function scope
-        self.structure_table = (
-            {}
-        )  # dictionary of structure names to their template AST nodes
+        self.env: EnvironmentManager = (
+            None  # EnvironmentManager of the current function scope
+        )
+        self.structure_table = dict()  # dictionary of structure names to their struct
 
     # run a program that's provided in a string
     # usese the provided Parser found in brewparse.py to parse the program
@@ -92,7 +92,7 @@ class Interpreter(InterpreterBase):
             )
 
         # if the function return_type is not void, it must have a return value and the type must match
-        if func_def.get("return_type") != Type.NIL and (
+        if func_def.get("return_type") != InterpreterBase.VOID_DEF and (
             not has_return or return_val.type() != func_def.get("return_type")
         ):
             super().error(
@@ -109,7 +109,7 @@ class Interpreter(InterpreterBase):
         # current environment is top of stack
         self.env = self.variable_scope_stack[-1][1]
         for arg, value in zip(args, values):
-            self.__arg_def(arg.get("name"), value)
+            self.__arg_def(arg.get("name"), value, arg.get("var_type"))
 
     def __create_new_block_scope(self):
         """Initialize new variable scope for a block"""
@@ -256,10 +256,28 @@ class Interpreter(InterpreterBase):
 
         # look up variable from current scope up to the closest function scope
         for scope_type, env_iterator in reversed(self.variable_scope_stack):
-            if env_iterator.get(var_name) is not None:
+            if "." in var_name:
+                var_var, field_name = var_name.split(".", 1)
+                var = env_iterator.get(var_var)
+            else:
+                var = env_iterator.get(var_name)
+
+            if var is not None:
                 # try setting the value to var, if it fails, it's a type error
                 try:
-                    env_iterator.set(var_name, value_obj)
+                    if "." not in var_name:
+                        env_iterator.set(var_name, value_obj)
+                    else:
+                        struct_ast = env_iterator.get(var_var)
+                        value_ast = self.__get_struct_field_obj(struct_ast, field_name)
+
+                        if value_ast.type() != value_obj.type():
+                            super().error(
+                                ErrorType.TYPE_ERROR,
+                                f"Type mismatch in assignment for field {field_name}",
+                            )
+                        value_ast.set_value(value_obj.value())
+
                 except TypeError as e:
                     super().error(ErrorType.TYPE_ERROR, str(e))
                 finally:
@@ -299,13 +317,20 @@ class Interpreter(InterpreterBase):
         if expr_ast.elem_type == InterpreterBase.BOOL_NODE:
             return Value(Type.BOOL, expr_ast.get("val"))
         if expr_ast.elem_type == InterpreterBase.VAR_NODE:
-            # look up variable from current scope up to the closest function scope
             var_name = expr_ast.get("name")
+            # look up variable from current scope up to the closest function scope
             for scope_type, env_iterator in reversed(self.variable_scope_stack):
-                val = env_iterator.get(var_name)
-                if val is not None:
-                    return val
-                if scope_type == ScopeType.FUNCTION and val is None:
+                if "." in var_name:
+                    var_var, field_name = var_name.split(".", 1)
+                    var = env_iterator.get(var_var)
+                else:
+                    var = env_iterator.get(var_name)
+                if var is not None:
+                    if "." in var_name:
+                        return self.__get_struct_field_obj(var, field_name)
+                    else:
+                        return var
+                if scope_type == ScopeType.FUNCTION and var is None:
                     super().error(
                         ErrorType.NAME_ERROR, f"Variable {var_name} not found"
                     )
@@ -316,7 +341,7 @@ class Interpreter(InterpreterBase):
         if expr_ast.elem_type in Interpreter.BIN_OPS:
             return self.__eval_op(expr_ast)
         if expr_ast.elem_type == InterpreterBase.NEW_NODE:
-            return True, self.__new_struct(expr_ast)
+            return self.__new_struct(expr_ast)
 
     def __eval_unary_op(self, arith_ast):
         value_obj = self.__eval_expr(arith_ast.get("op1"))
@@ -444,8 +469,6 @@ class Interpreter(InterpreterBase):
 
     def __new_struct(self, ast):
         """Generating a new struct object from the AST"""
-        self.__debug(f"Creating new struct object from AST {ast}")
-
         struct_type = ast.get("var_type")
         if struct_type not in self.structure_table:
             super().error(
@@ -456,8 +479,30 @@ class Interpreter(InterpreterBase):
         struct_obj = Struct(
             self.structure_table[struct_type], self.__create_default_value_obj
         )
-        return struct_obj
+        return Value(struct_type, struct_obj)
 
-    def __debug(self, message):
-        if self.trace_output:
-            print(message)
+    def __get_struct_field_obj(self, struct_ast, field_name):
+        if struct_ast.is_NIL():
+            super().error(
+                ErrorType.FAULT_ERROR,
+                f"Cannot access field {field_name} of nil struct",
+            )
+
+        obj_type, struct_obj = struct_ast.type(), struct_ast.value()
+        if not isinstance(struct_obj, Struct):
+            super().error(
+                ErrorType.TYPE_ERROR,
+                f"Expected struct object, got {obj_type}",
+            )
+
+        field_name += "."
+
+        while field_name:
+            current_field, field_name = field_name.split(".", 1)
+
+            try:
+                struct_obj = struct_obj.get_field(current_field)
+            except AttributeError as e:
+                super().error(ErrorType.NAME_ERROR, str(e))
+
+        return struct_obj

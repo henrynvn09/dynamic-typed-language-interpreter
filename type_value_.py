@@ -21,6 +21,12 @@ class Value:
     def type(self):
         return self.t
 
+    def set_value(self, new_value):
+        self.v = new_value
+
+    def is_NIL(self):
+        return self.v == Type.NIL
+
 
 def get_printable(val):
     if val.type() == Type.NIL:
@@ -33,6 +39,12 @@ def get_printable(val):
         if val.value() is True:
             return "true"
         return "false"
+
+    # for structs case of NIL
+    if val.value() == Type.NIL:
+        return "nil"
+
+    # we don't have to handle struct not NIL
     return None
 
 

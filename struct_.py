@@ -17,6 +17,8 @@ class Struct:
 
     def get_field(self, field_name: str):
         if field_name not in self.fields:
-            raise Exception(f"Field {field_name} does not exist in struct {self.name}")
+            raise AttributeError(
+                f"Field {field_name} does not exist in struct {self.name}"
+            )
 
         return self.fields[field_name]
