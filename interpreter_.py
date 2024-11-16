@@ -272,16 +272,13 @@ class Interpreter(InterpreterBase):
                         value_ast = self.__get_struct_field_obj(struct_ast, field_name)
 
                         if value_ast.type() != value_obj.type():
-                            super().error(
-                                ErrorType.TYPE_ERROR,
-                                f"Type mismatch in assignment for field {field_name}",
+                            raise TypeError(
+                                f"Cannot assign value of type for struct attribute {value_obj.type()} to {value_ast.type()}"
                             )
                         value_ast.set_value(value_obj.value())
-
+                    break
                 except TypeError as e:
                     super().error(ErrorType.TYPE_ERROR, str(e))
-                finally:
-                    break
             # when reaching the function scope but the variable is not found
             elif scope_type == ScopeType.FUNCTION:
                 super().error(
@@ -492,7 +489,7 @@ class Interpreter(InterpreterBase):
         if not isinstance(struct_obj, Struct):
             super().error(
                 ErrorType.TYPE_ERROR,
-                f"Expected struct object, got {obj_type}",
+                f"Expected struct object, got {obj_type} for .{field_name}",
             )
 
         field_name += "."

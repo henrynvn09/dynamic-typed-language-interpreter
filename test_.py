@@ -382,9 +382,13 @@ struct dog {
 func main() : void {
   var d: dog;     
   d = new dog;   /* sets d object reference to point to a dog structure */
+  
+  var i: int;
+  i = 0;
+  
+  d = nil;
 
   d.companion = new flea;
-  d.companion.age = 5;
   print(d.companion.age); /* prints false - default bool value */
  
 }
