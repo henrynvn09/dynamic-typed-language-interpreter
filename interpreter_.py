@@ -311,8 +311,8 @@ class Interpreter(InterpreterBase):
                             raise TypeError(
                                 f"Cannot assign value of type for struct attribute {value_obj.type()} to {value_ast.type()}"
                             )
-
-                        struct_ast.value().set_field(field_name, value_obj)
+                        value_ast.v = value_obj.v
+                        # struct_ast.value().set_field(field_name, value_obj)
                     break
                 except TypeError as e:
                     super().error(ErrorType.TYPE_ERROR, str(e))

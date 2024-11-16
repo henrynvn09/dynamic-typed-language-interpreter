@@ -161,6 +161,34 @@ func main() : void {
   idk
   """,
     ],
+    [
+        """
+        struct foo {
+  i:int;
+}
+
+struct bar {
+  f:foo;
+}
+
+func main() : void {
+  var b : bar;
+  b = new bar;
+  b.f = new foo;
+  b.f.i = 10;
+
+  print(b.f.i);
+}
+/*
+*OUT*
+10
+*OUT*
+*/
+""",
+        """
+        10
+""",
+    ],
 ]
 
 

@@ -9,7 +9,7 @@ class Struct:
 
     def set_field(self, field_name: str, value: Value):
         if field_name not in self.fields:
-            raise Exception(f"Field {field_name} does not exist in struct {self.name}")
+            raise Exception(f"Field {field_name} does not exist in struct")
 
         self.fields[field_name] = value
 
