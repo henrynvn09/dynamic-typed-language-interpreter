@@ -410,7 +410,7 @@ func bletch() : bool {
 }
 
 func voo() : void {
-  return 3; 
+  return ; 
 }
 func boing() : dog {
   return;  /* returns nil */
@@ -431,6 +431,33 @@ func main() : void {
 hi
 false
 nil
+""",
+    ],
+    [
+        """
+        struct person {
+  name: string;
+  age: int;
+}
+
+func foo(a:int, b: person) : person {
+  return nil;
+}
+
+func main() : void {
+  var x: int;
+  x = 5;
+  var p:person;
+  p = new person;
+  p.age = 18;
+  print(foo(x, p));
+  print(x);      /* prints 5, since x is passed by value */
+  print(p.age);  /* prints 19, since p is passed by object reference */
+}
+""",
+        """
+        5
+19
 """,
     ],
 ]

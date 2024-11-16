@@ -45,8 +45,8 @@ class Interpreter(InterpreterBase):
     # into an abstract syntax tree (ast)
     def run(self, program):
         ast = parse_program(program)
-        self.__set_up_function_table(ast)
         self.__set_up_structure_table(ast.get("structs"))
+        self.__set_up_function_table(ast)
         self.__run_function("main")
 
     def __set_up_structure_table(self, structs):
@@ -91,7 +91,10 @@ class Interpreter(InterpreterBase):
         )
 
         # if the function return_type is void, it must not have return value
-        if func_def.get("return_type") == Type.NIL and return_val is None:
+        if (
+            func_def.get("return_type") == InterpreterBase.VOID_DEF
+            and return_val is not None
+        ):
             super().error(
                 ErrorType.TYPE_ERROR,
                 f"Function {func_name} must return a value of type {func_def.get('return_type')}",
@@ -100,6 +103,12 @@ class Interpreter(InterpreterBase):
         # if the function return_type is not void, and there is no return statement or no specific return value
         if func_def.get("return_type") != InterpreterBase.VOID_DEF and (
             not has_return or return_val is None
+        ):
+            return_val = self.__create_default_value_obj(func_def.get("return_type"))
+
+        # if the function return_type is struct, and the return value is nil
+        if self.__is_struct(func_def.get("return_type")) and (
+            not return_val or return_val.value() == None
         ):
             return_val = self.__create_default_value_obj(func_def.get("return_type"))
 
@@ -113,7 +122,7 @@ class Interpreter(InterpreterBase):
             )
 
         self.__destroy_top_scope()
-        return return_val if return_val is not None else Value(Type.NIL, None)
+        return return_val
 
     def __create_new_function_scope(self, func_name, args, values):
         """Initialize new variable scope for a function"""
@@ -142,6 +151,16 @@ class Interpreter(InterpreterBase):
             self.func_name_to_ast[(func_def.get("name"), len(func_def.get("args")))] = (
                 func_def
             )
+
+            if (
+                not is_generic_type(func_def.get("return_type"))
+                and not self.__is_struct(func_def.get("return_type"))
+                and func_def.get("return_type") != InterpreterBase.VOID_DEF
+            ):
+                super().error(
+                    ErrorType.TYPE_ERROR,
+                    f"Unknown type {func_def.get('return_type')} on function {func_def.get('name')} return type",
+                )
 
     def __get_func(self, name, args):
         """get a function by name and number of arguments"""
@@ -390,8 +409,8 @@ class Interpreter(InterpreterBase):
         f = self.op_to_lambda[value_obj.type()][arith_ast.elem_type]
         return f(value_obj)
 
-    def __is_struct(self, value: Value) -> bool:
-        return value.type() in self.structure_table
+    def __is_struct(self, val_type: str) -> bool:
+        return val_type in self.structure_table
 
     def __struct_eval_op(self, arith_ast, left_value_obj, right_value_obj):
         if is_non_nil_generic_type(left_value_obj.type()) or is_non_nil_generic_type(
@@ -421,7 +440,9 @@ class Interpreter(InterpreterBase):
                 f"Cannot compare void value",
             )
 
-        if self.__is_struct(left_value_obj) or self.__is_struct(right_value_obj):
+        if self.__is_struct(left_value_obj.type()) or self.__is_struct(
+            right_value_obj.type()
+        ):
             return self.__struct_eval_op(arith_ast, left_value_obj, right_value_obj)
 
         if left_value_obj.type() == Type.BOOL and right_value_obj.type() == Type.INT:
@@ -556,7 +577,7 @@ class Interpreter(InterpreterBase):
         return Value(struct_type, struct_obj)
 
     def __get_struct_field_obj(self, struct_ast, field_name):
-        if struct_ast.is_NIL():
+        if struct_ast.value() is None:
             super().error(
                 ErrorType.FAULT_ERROR,
                 f"Cannot access field {field_name} of nil struct",

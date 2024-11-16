@@ -24,11 +24,10 @@ class Value:
     def set_value(self, new_value):
         self.v = new_value
 
-    def is_NIL(self):
-        return self.v == Type.NIL
-
 
 def get_printable(val):
+    if not val:
+        return ""
     if val.type() == Type.NIL:
         return "nil"
     if val.type() == Type.INT:
