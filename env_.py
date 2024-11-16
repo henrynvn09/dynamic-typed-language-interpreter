@@ -39,7 +39,7 @@ class EnvironmentManager:
                 f"Cannot assign non nil value to {self.environment[symbol].type()}"
             )
 
-        self.environment[symbol] = value
+        self.environment[symbol].v = value.v
 
     def create(self, symbol, start_val):
         if symbol not in self.environment:

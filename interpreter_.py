@@ -7,6 +7,7 @@ from type_value_ import (
     Value,
     get_printable,
     is_generic_type,
+    is_non_nil_generic_type,
 )
 from intbase import InterpreterBase, ErrorType
 from brewparse import parse_program
@@ -69,20 +70,25 @@ class Interpreter(InterpreterBase):
     def __run_function(self, func_name, passed_arguments: list[Element] = []):
         """run a function based on name and list of arguments"""
         func_def: Element = self.__get_func(func_name, passed_arguments)
-        evaluated_args = [deepcopy(self.__eval_expr(arg)) for arg in passed_arguments]
+        evaluated_args = [
+            deepcopy(self.__eval_expr(arg, arg_def.get("var_type")))
+            for arg, arg_def in zip(passed_arguments, func_def.get("args"))
+        ]
 
-        # check if the type of the arguments passed in matches the type of the arguments in the function definition
-        for val, arg_type in zip(evaluated_args, func_def.get("args")):
-            if val.type() != arg_type.get("var_type"):
-                super().error(
-                    ErrorType.TYPE_ERROR,
-                    f"Argument type mismatch in function {func_name} and argument {arg_type.get('name')}",
-                )
+        # # check if the type of the arguments passed in matches the type of the arguments in the function definition
+        # for val, arg_type in zip(evaluated_args, ):
+        #     if val.type() != arg_type.get("var_type"):
+        #         super().error(
+        #             ErrorType.TYPE_ERROR,
+        #             f"Argument type mismatch in function {func_name} and argument {arg_type.get('name')}",
+        #         )
 
         self.__create_new_function_scope(
             func_def.get("name"), func_def.get("args"), evaluated_args
         )
-        has_return, return_val = self.__run_statements(func_def.get("statements"))
+        has_return, return_val = self.__run_statements(
+            func_def.get("statements"), func_def.get("return_type")
+        )
 
         # if the function return_type is void, it must not have return value
         if func_def.get("return_type") == Type.NIL and return_val is None:
@@ -109,7 +115,7 @@ class Interpreter(InterpreterBase):
         # current environment is top of stack
         self.env = self.variable_scope_stack[-1][1]
         for arg, value in zip(args, values):
-            self.__arg_def(arg.get("name"), value, arg.get("var_type"))
+            self.__arg_def(arg.get("name"), value)
 
     def __create_new_block_scope(self):
         """Initialize new variable scope for a block"""
@@ -138,7 +144,7 @@ class Interpreter(InterpreterBase):
             super().error(ErrorType.NAME_ERROR, f"Function {name} not found")
         return self.func_name_to_ast[(name, n_args)]
 
-    def __run_statements(self, statements):
+    def __run_statements(self, statements, return_type):
         "if there is a return statement, return True, value. otherwise return False, None"
         # create a block scope
         self.__create_new_block_scope()
@@ -153,15 +159,15 @@ class Interpreter(InterpreterBase):
             elif statement.elem_type == InterpreterBase.VAR_DEF_NODE:
                 self.__var_def(statement)
             elif statement.elem_type == InterpreterBase.IF_NODE:
-                is_return, return_value = self.__if_condition(statement)
+                is_return, return_value = self.__if_condition(statement, return_type)
                 if is_return:
                     self.__destroy_top_scope()
                     return is_return, return_value
             elif statement.elem_type == InterpreterBase.RETURN_NODE:
                 self.__destroy_top_scope()
-                return True, self.__return_value(statement)
+                return True, self.__return_value(statement, return_type)
             elif statement.elem_type == InterpreterBase.FOR_NODE:
-                is_return, return_value = self.__for_loop(statement)
+                is_return, return_value = self.__for_loop(statement, return_type)
                 if is_return:
                     self.__destroy_top_scope()
                     return is_return, return_value
@@ -170,11 +176,11 @@ class Interpreter(InterpreterBase):
         self.__destroy_top_scope()
         return False, None
 
-    def __return_value(self, return_ast):
-        value = self.__eval_expr(return_ast.get("expression"))
+    def __return_value(self, return_ast, return_type):
+        value = self.__eval_expr(return_ast.get("expression"), return_type)
         return value
 
-    def __for_loop(self, for_ast):
+    def __for_loop(self, for_ast, return_type):
         init = for_ast.get("init")
         condition = for_ast.get("condition")
         update = for_ast.get("update")
@@ -183,22 +189,22 @@ class Interpreter(InterpreterBase):
         self.__create_new_block_scope()
         self.__assign(init)
 
-        if self.__eval_expr(condition).type() != Type.BOOL:
+        if self.__eval_expr(condition, Type.BOOL).type() != Type.BOOL:
             super().error(
                 ErrorType.TYPE_ERROR, "for condition must be a boolean expression"
             )
 
-        while self.__eval_expr(condition).value():
-            is_return, return_value = self.__run_statements(statements)
+        while self.__eval_expr(condition, Type.BOOL).value():
+            is_return, return_value = self.__run_statements(statements, return_type)
             if is_return:
                 self.__destroy_top_scope()
                 return is_return, return_value
-            self.__run_statements([update])
+            self.__run_statements([update], return_type)
         self.__destroy_top_scope()
         return False, None
 
-    def __if_condition(self, if_ast):
-        condition = self.__eval_expr(if_ast.get("condition"))
+    def __if_condition(self, if_ast, return_type):
+        condition = self.__eval_expr(if_ast.get("condition"), Type.BOOL)
         if condition.type() != Type.BOOL:
             super().error(
                 ErrorType.TYPE_ERROR, "If condition must be a boolean expression"
@@ -208,9 +214,11 @@ class Interpreter(InterpreterBase):
             if_ast.get("else_statements") if if_ast.get("else_statements") else []
         )
         if condition.value():
-            is_return, return_value = self.__run_statements(statements)
+            is_return, return_value = self.__run_statements(statements, return_type)
         else:
-            is_return, return_value = self.__run_statements(else_statements)
+            is_return, return_value = self.__run_statements(
+                else_statements, return_type
+            )
         return is_return, return_value
 
     def __call_func(self, call_node):
@@ -229,15 +237,14 @@ class Interpreter(InterpreterBase):
     def __call_print(self, call_ast):
         output = ""
         for arg in call_ast.get("args"):
-            result = self.__eval_expr(arg)  # result is a Value object
+            result = self.__eval_expr(arg, None)  # result is a Value object
             output = output + get_printable(result)
         super().output(output)
-        return Value(Type.NIL, None)
 
     def __call_input(self, call_ast):
         args = call_ast.get("args")
         if args is not None and len(args) == 1:
-            result = self.__eval_expr(args[0])
+            result = self.__eval_expr(args[0], None)
             super().output(get_printable(result))
         elif args is not None and len(args) > 1:
             super().error(
@@ -252,7 +259,7 @@ class Interpreter(InterpreterBase):
 
     def __assign(self, assign_ast):
         var_name = assign_ast.get("name")
-        value_obj = self.__eval_expr(assign_ast.get("expression"))
+        value_obj = self.__eval_expr(assign_ast.get("expression"), None)
 
         # look up variable from current scope up to the closest function scope
         for scope_type, env_iterator in reversed(self.variable_scope_stack):
@@ -266,11 +273,14 @@ class Interpreter(InterpreterBase):
                 # try setting the value to var, if it fails, it's a type error
                 try:
                     if "." not in var_name:
+                        value_obj = self.coerce_value(value_obj, var.type())
                         env_iterator.set(var_name, value_obj)
                     else:
                         struct_ast = env_iterator.get(var_var)
                         value_ast = self.__get_struct_field_obj(struct_ast, field_name)
+                        value_obj = self.coerce_value(value_obj, value_ast.type())
 
+                        # TODO: check if necessary
                         if value_ast.type() != value_obj.type():
                             raise TypeError(
                                 f"Cannot assign value of type for struct attribute {value_obj.type()} to {value_ast.type()}"
@@ -304,11 +314,28 @@ class Interpreter(InterpreterBase):
                 f"Duplicate definition for function argument name {var_name}",
             )
 
-    def __eval_expr(self, expr_ast) -> Value:
+    def coerce_value(self, value: Value, target: Type) -> Value:
+        if not target:
+            return value
+        if value.type() == target:
+            return value
+
+        if value.type() == Type.INT and target == Type.BOOL:
+            return Value(Type.BOOL, value.value() != 0)
+
+        if not is_generic_type(target) and value.type() == Type.NIL:
+            return Value(target, None)
+
+        super().error(
+            ErrorType.TYPE_ERROR,
+            f"Cannot coerce value of type {value.type()} to type {target}",
+        )
+
+    def __eval_expr(self, expr_ast, target_type) -> Value:
         if expr_ast is None or expr_ast.elem_type == InterpreterBase.NIL_NODE:
             return Value(Type.NIL, None)
         if expr_ast.elem_type == InterpreterBase.INT_NODE:
-            return Value(Type.INT, expr_ast.get("val"))
+            res = Value(Type.INT, expr_ast.get("val"))
         if expr_ast.elem_type == InterpreterBase.STRING_NODE:
             return Value(Type.STRING, expr_ast.get("val"))
         if expr_ast.elem_type == InterpreterBase.BOOL_NODE:
@@ -324,24 +351,28 @@ class Interpreter(InterpreterBase):
                     var = env_iterator.get(var_name)
                 if var is not None:
                     if "." in var_name:
-                        return self.__get_struct_field_obj(var, field_name)
+                        res = self.__get_struct_field_obj(var, field_name)
+                        return self.coerce_value(res, target_type)
+
                     else:
-                        return var
+                        return self.coerce_value(var, target_type)
                 if scope_type == ScopeType.FUNCTION and var is None:
                     super().error(
                         ErrorType.NAME_ERROR, f"Variable {var_name} not found"
                     )
         if expr_ast.elem_type == InterpreterBase.FCALL_NODE:
-            return self.__call_func(expr_ast)
+            res = self.__call_func(expr_ast)
         if expr_ast.elem_type in Interpreter.UNARY_OPS:
-            return self.__eval_unary_op(expr_ast)
+            res = self.__eval_unary_op(expr_ast)
         if expr_ast.elem_type in Interpreter.BIN_OPS:
-            return self.__eval_op(expr_ast)
+            res = self.__eval_op(expr_ast)
         if expr_ast.elem_type == InterpreterBase.NEW_NODE:
-            return self.__new_struct(expr_ast)
+            res = self.__new_struct(expr_ast)
+
+        return self.coerce_value(res, target_type)
 
     def __eval_unary_op(self, arith_ast):
-        value_obj = self.__eval_expr(arith_ast.get("op1"))
+        value_obj = self.__eval_expr(arith_ast.get("op1"), Type.BOOL)
         if arith_ast.elem_type not in self.op_to_lambda[value_obj.type()]:
             super().error(
                 ErrorType.TYPE_ERROR,
@@ -350,9 +381,44 @@ class Interpreter(InterpreterBase):
         f = self.op_to_lambda[value_obj.type()][arith_ast.elem_type]
         return f(value_obj)
 
+    def __is_struct(self, value: Value) -> bool:
+        return value.type() in self.structure_table
+
+    def __struct_eval_op(self, arith_ast, left_value_obj, right_value_obj):
+        if is_non_nil_generic_type(left_value_obj.type()) or is_non_nil_generic_type(
+            right_value_obj.type()
+        ):
+            super().error(
+                ErrorType.TYPE_ERROR,
+                f"Cannot compare struct with non-struct type other than nil",
+            )
+
+        if arith_ast.elem_type in ["==", "!="]:
+            # if one of the values is nil, return the opposite of the other value
+            if left_value_obj.type() != right_value_obj.type():
+                return Value(
+                    Type.BOOL, left_value_obj.value() == right_value_obj.value()
+                )
+            # if both values are structs, compare their references
+            return Value(Type.BOOL, left_value_obj.value() is right_value_obj.value())
+
     def __eval_op(self, arith_ast):
-        left_value_obj = self.__eval_expr(arith_ast.get("op1"))
-        right_value_obj = self.__eval_expr(arith_ast.get("op2"))
+        left_value_obj = self.__eval_expr(arith_ast.get("op1"), None)
+        right_value_obj = self.__eval_expr(arith_ast.get("op2"), None)
+
+        if left_value_obj == None or right_value_obj == None:
+            super().error(
+                ErrorType.TYPE_ERROR,
+                f"Cannot compare void value",
+            )
+
+        if self.__is_struct(left_value_obj) or self.__is_struct(right_value_obj):
+            return self.__struct_eval_op(arith_ast, left_value_obj, right_value_obj)
+
+        if left_value_obj.type() == Type.BOOL and right_value_obj.type() == Type.INT:
+            right_value_obj = self.coerce_value(right_value_obj, Type.BOOL)
+        if right_value_obj.type() == Type.BOOL and left_value_obj.type() == Type.INT:
+            left_value_obj = self.coerce_value(left_value_obj, Type.BOOL)
 
         # Special case for == and != operators comparing different types and nil
         if arith_ast.elem_type in Interpreter.BIN_OPS_EXCEPT and (
@@ -458,7 +524,7 @@ class Interpreter(InterpreterBase):
             return Value(Type.NIL)
 
         if val_type in self.structure_table:
-            return Value(val_type, Type.NIL)
+            return Value(val_type)
         # This should never happen
 
         super().error(ErrorType.TYPE_ERROR, f"Unknown type {val_type}")

@@ -368,59 +368,58 @@ func main() {
     ],
     [
         """
-     struct flea {
-  age: int;
-  infected : bool;
-}
-
-struct dog {
+struct Person {
   name: string;
-  vaccinated: bool;  
-  companion: flea;
+  age: int;
+  student: bool;
 }
 
 func main() : void {
-  var d: dog;     
-  d = new dog;   /* sets d object reference to point to a dog structure */
+  var p1: Person;
   
-  var i: int;
-  i = 0;
+  print(p1 == nil);
+  var p2: Person;
+  p2 = new Person;
+  p1 = new Person;
   
-  d = nil;
-
-  d.companion = new flea;
-  print(d.companion.age); /* prints false - default bool value */
- 
+  p2 = p1;
+  print(p1 == print());
 }
-        
+
+func foo(p : Person) : void {
+  print(p.name, " is ", p.age, " years old.");
+}
 """,
         """
-0
-bar
+true
 false
+false
+true
 """,
     ],
 ]
 
 
-def test(program_source, expected_output):
+def test(program_source, expected_output, debug=False):
     print("=" * 40)
     print("Running test...")
     # print(program_source)
     # this is how you use our parser to parse a valid Brewin program into an AST
 
-    # redirect the output to a variable
-    old_stdout = sys.stdout
-    sys.stdout = mystdout = StringIO()
+    if not debug:
+        # redirect the output to a variable
+        old_stdout = sys.stdout
+        sys.stdout = mystdout = StringIO()
 
     interpreter = Interpreter()
     interpreter.run(program_source)
 
-    out = mystdout.getvalue().strip()
+    if not debug:
+        out = mystdout.getvalue().strip()
 
-    # redirect the output back to stdout
-    sys.stdout = old_stdout
-    print(out)
+        # redirect the output back to stdout
+        sys.stdout = old_stdout
+        print(out)
     print("-" * 40)
     print("Expected output:")
     clean_output = expected_output.strip()
@@ -428,10 +427,11 @@ def test(program_source, expected_output):
         clean_output = clean_output.replace("\n ", "\n")
     print(clean_output)
     print("=" * 40)
-    sys.stdout = old_stdout
+
+    # sys.stdout = old_stdout
     # assert out == clean_output
 
 
 if __name__ == "__main__":
     for program, expected_output in tests[-1:]:
-        test(program, expected_output)
+        test(program, expected_output, True)

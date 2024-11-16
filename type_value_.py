@@ -50,3 +50,7 @@ def get_printable(val):
 
 def is_generic_type(val_type):
     return val_type in vars(Type).values()
+
+
+def is_non_nil_generic_type(val_type):
+    return val_type in [Type.INT, Type.STRING, Type.BOOL]
