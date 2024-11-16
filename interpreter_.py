@@ -376,6 +376,10 @@ class Interpreter(InterpreterBase):
         )
 
     def __eval_expr(self, expr_ast, target_type) -> Value:
+        if target_type == InterpreterBase.VOID_DEF:
+            super().error(
+                ErrorType.TYPE_ERROR, "Cannot evaluate expression to void type"
+            )
         if expr_ast is None:
             # TODO: check if this is correct
             return self.__create_default_value_obj(target_type)

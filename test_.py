@@ -260,7 +260,9 @@ def test(program_source, expected_output, debug=False):
     # assert out == clean_output
 
 
-files = ["v3/fails/Structs-Reference_Hell.br"]
+files = [
+    "v3/fails/Structs-Struct_matches_nil_but_not_void.br",
+]
 
 if __name__ == "__main__":
     # for program, expected_output in tests[-1:]:
