@@ -279,6 +279,10 @@ class Interpreter(InterpreterBase):
         output = ""
         for arg in call_ast.get("args"):
             result = self.__eval_expr(arg, None)  # result is a Value object
+            if result == None:
+                super().error(
+                    ErrorType.TYPE_ERROR, "Cannot print void value in print statement"
+                )
             output = output + get_printable(result)
         self.outputs.append(output)
         # super().output(output)
