@@ -262,6 +262,7 @@ def test(program_source, expected_output, debug=False):
 
 files = [
     "v3/fails/Structs-Struct_matches_nil_but_not_void.br",
+    "v3/tests/Type_Validity-Type_Coercion_With_Operators.br",
 ]
 
 if __name__ == "__main__":

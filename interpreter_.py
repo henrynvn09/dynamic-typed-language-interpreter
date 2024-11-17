@@ -595,7 +595,7 @@ class Interpreter(InterpreterBase):
         self.op_to_lambda[Type.INT]["neg"] = lambda x: Value(Type.INT, -x.value())
         self.op_to_lambda[Type.BOOL]["!"] = lambda x: Value(Type.BOOL, not x.value())
         self.op_to_lambda[Type.INT]["!"] = lambda x: Value(
-            Type.INT, False if x.value() else True
+            Type.BOOL, False if x.value() else True
         )
 
         # nil operations
