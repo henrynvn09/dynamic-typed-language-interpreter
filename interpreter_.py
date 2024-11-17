@@ -675,7 +675,7 @@ class Interpreter(InterpreterBase):
                 if isinstance(struct_obj, Value):
                     if not struct_obj.value():
                         super().error(
-                            ErrorType.FAULT_ERROR,
+                            ErrorType.TYPE_ERROR,
                             f"Cannot access field {current_field} of nil struct",
                         )
                     struct_obj = struct_obj.value().get_field(current_field)
