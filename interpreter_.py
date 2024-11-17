@@ -304,6 +304,12 @@ class Interpreter(InterpreterBase):
         var_name = assign_ast.get("name")
         value_obj = self.__eval_expr(assign_ast.get("expression"), None)
 
+        if value_obj == None:
+            super().error(
+                ErrorType.TYPE_ERROR,
+                f"Cannot assign void value to variable {var_name}",
+            )
+
         # look up variable from current scope up to the closest function scope
         for scope_type, env_iterator in reversed(self.variable_scope_stack):
             if "." in var_name:
@@ -376,10 +382,6 @@ class Interpreter(InterpreterBase):
         )
 
     def __eval_expr(self, expr_ast, target_type) -> Value:
-        if target_type == InterpreterBase.VOID_DEF:
-            super().error(
-                ErrorType.TYPE_ERROR, "Cannot evaluate expression to void type"
-            )
         if expr_ast is None:
             return self.__create_default_value_obj(target_type)
         if expr_ast.elem_type == InterpreterBase.NIL_NODE:
@@ -423,6 +425,11 @@ class Interpreter(InterpreterBase):
 
     def __eval_unary_op(self, arith_ast):
         value_obj = self.__eval_expr(arith_ast.get("op1"), None)
+        if value_obj == None:
+            super().error(
+                ErrorType.TYPE_ERROR,
+                f"Cannot perform unary operation on void value",
+            )
         if arith_ast.elem_type not in self.op_to_lambda[value_obj.type()]:
             super().error(
                 ErrorType.TYPE_ERROR,
