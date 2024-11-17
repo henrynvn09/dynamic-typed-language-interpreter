@@ -62,7 +62,7 @@ class Interpreter(InterpreterBase):
             for field in struct_def.get("fields"):
                 # if the field type is not defined, raise an error
                 if (
-                    not is_generic_type(field.get("var_type"))
+                    not is_non_nil_generic_type(field.get("var_type"))
                     and field.get("var_type") not in self.structure_table
                 ):
                     super().error(
@@ -158,7 +158,7 @@ class Interpreter(InterpreterBase):
 
             # check if the return type of the function is defined
             if (
-                not is_generic_type(func_def.get("return_type"))
+                not is_non_nil_generic_type(func_def.get("return_type"))
                 and not self.__is_struct(func_def.get("return_type"))
                 and func_def.get("return_type") != InterpreterBase.VOID_DEF
             ):
@@ -169,9 +169,9 @@ class Interpreter(InterpreterBase):
 
             # check if the type of the arguments in the function definition is defined
             for arg in func_def.get("args"):
-                if not is_generic_type(arg.get("var_type")) and not self.__is_struct(
+                if not is_non_nil_generic_type(
                     arg.get("var_type")
-                ):
+                ) and not self.__is_struct(arg.get("var_type")):
                     super().error(
                         ErrorType.TYPE_ERROR,
                         f"Unknown type {arg.get('var_type')} for argument {arg.get('name')} in function {func_def.get('name')}",
@@ -507,9 +507,7 @@ class Interpreter(InterpreterBase):
 
         # Special case for == and != operators comparing different types and nil
         if arith_ast.elem_type in Interpreter.BIN_OPS_EXCEPT and (
-            not left_value_obj
-            or not right_value_obj
-            or left_value_obj.type() != right_value_obj.type()
+            not left_value_obj or not right_value_obj
         ):
             if arith_ast.elem_type == "==":
                 return Value(Type.BOOL, False)
