@@ -9,6 +9,6 @@ func main() : void {
 
 /*
 *OUT*
-ErrorType.NAME_ERROR
+ErrorType.FAULT_ERROR
 *OUT*
 */

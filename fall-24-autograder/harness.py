@@ -57,11 +57,15 @@ async def run_all_tests(interpreter, tests, timeout_per_test=5, zero_credit=Fals
     results = [
         {
             "name": test["name"],
-            "score": await run_test_wrapper(interpreter, test, timeout_per_test) if not zero_credit else 0,
+            "score": (
+                await run_test_wrapper(interpreter, test, timeout_per_test)
+                if not zero_credit
+                else 0
+            ),
             "max_score": 1,
-            "visibility": "visible"
-            if test.get("visible", False)
-            else "after_published",
+            "visibility": (
+                "visible" if test.get("visible", False) else "after_published"
+            ),
         }
         for test in tests
     ]
@@ -86,16 +90,20 @@ def write_gradescope_output(score, is_prod):
     with open(f"{path}/results.json", "w", encoding="utf-8") as handle:
         json.dump(data, handle, ensure_ascii=False, indent=4)
 
+
 def write_gradescope_output_failure(msg, is_prod):
     """Used if the submission code cannot launch e.g., due to syntax error or missing file"""
-    results = [{
-        "score": 0,
-        "status": "failed",
-        "name": "Pre-launch check",
-        "output": msg,
-    }]
+    results = [
+        {
+            "score": 0,
+            "status": "failed",
+            "name": "Pre-launch check",
+            "output": msg,
+        }
+    ]
 
     write_gradescope_output(results, is_prod)
+
 
 def get_score(results):
     """Helper to get student's score (for 0/1-based scores.)"""

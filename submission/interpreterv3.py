@@ -62,7 +62,7 @@ class Interpreter(InterpreterBase):
             for field in struct_def.get("fields"):
                 # if the field type is not defined, raise an error
                 if (
-                    not is_generic_type(field.get("var_type"))
+                    not is_non_nil_generic_type(field.get("var_type"))
                     and field.get("var_type") not in self.structure_table
                 ):
                     super().error(
@@ -158,7 +158,7 @@ class Interpreter(InterpreterBase):
 
             # check if the return type of the function is defined
             if (
-                not is_generic_type(func_def.get("return_type"))
+                not is_non_nil_generic_type(func_def.get("return_type"))
                 and not self.__is_struct(func_def.get("return_type"))
                 and func_def.get("return_type") != InterpreterBase.VOID_DEF
             ):
@@ -169,9 +169,9 @@ class Interpreter(InterpreterBase):
 
             # check if the type of the arguments in the function definition is defined
             for arg in func_def.get("args"):
-                if not is_generic_type(arg.get("var_type")) and not self.__is_struct(
+                if not is_non_nil_generic_type(
                     arg.get("var_type")
-                ):
+                ) and not self.__is_struct(arg.get("var_type")):
                     super().error(
                         ErrorType.TYPE_ERROR,
                         f"Unknown type {arg.get('var_type')} for argument {arg.get('name')} in function {func_def.get('name')}",
@@ -279,6 +279,10 @@ class Interpreter(InterpreterBase):
         output = ""
         for arg in call_ast.get("args"):
             result = self.__eval_expr(arg, None)  # result is a Value object
+            if result == None:
+                super().error(
+                    ErrorType.TYPE_ERROR, "Cannot print void value in print statement"
+                )
             output = output + get_printable(result)
         self.outputs.append(output)
         # super().output(output)
@@ -303,6 +307,12 @@ class Interpreter(InterpreterBase):
     def __assign(self, assign_ast):
         var_name = assign_ast.get("name")
         value_obj = self.__eval_expr(assign_ast.get("expression"), None)
+
+        if value_obj == None:
+            super().error(
+                ErrorType.TYPE_ERROR,
+                f"Cannot assign void value to variable {var_name}",
+            )
 
         # look up variable from current scope up to the closest function scope
         for scope_type, env_iterator in reversed(self.variable_scope_stack):
@@ -377,7 +387,6 @@ class Interpreter(InterpreterBase):
 
     def __eval_expr(self, expr_ast, target_type) -> Value:
         if expr_ast is None:
-            # TODO: check if this is correct
             return self.__create_default_value_obj(target_type)
         if expr_ast.elem_type == InterpreterBase.NIL_NODE:
             res = Value(Type.NIL, None)
@@ -420,6 +429,11 @@ class Interpreter(InterpreterBase):
 
     def __eval_unary_op(self, arith_ast):
         value_obj = self.__eval_expr(arith_ast.get("op1"), None)
+        if value_obj == None:
+            super().error(
+                ErrorType.TYPE_ERROR,
+                f"Cannot perform unary operation on void value",
+            )
         if arith_ast.elem_type not in self.op_to_lambda[value_obj.type()]:
             super().error(
                 ErrorType.TYPE_ERROR,
@@ -493,9 +507,7 @@ class Interpreter(InterpreterBase):
 
         # Special case for == and != operators comparing different types and nil
         if arith_ast.elem_type in Interpreter.BIN_OPS_EXCEPT and (
-            not left_value_obj
-            or not right_value_obj
-            or left_value_obj.type() != right_value_obj.type()
+            not left_value_obj or not right_value_obj
         ):
             if arith_ast.elem_type == "==":
                 return Value(Type.BOOL, False)
@@ -585,7 +597,7 @@ class Interpreter(InterpreterBase):
         self.op_to_lambda[Type.INT]["neg"] = lambda x: Value(Type.INT, -x.value())
         self.op_to_lambda[Type.BOOL]["!"] = lambda x: Value(Type.BOOL, not x.value())
         self.op_to_lambda[Type.INT]["!"] = lambda x: Value(
-            Type.INT, False if x.value() else True
+            Type.BOOL, False if x.value() else True
         )
 
         # nil operations
@@ -626,12 +638,26 @@ class Interpreter(InterpreterBase):
         )
         return Value(struct_type, struct_obj)
 
+    def __check_field_in_struct(self, struct_type, field_name):
+        # verify the struct_type is a struct
+        if struct_type not in self.structure_table:
+            super().error(
+                ErrorType.TYPE_ERROR,
+                f"Unknown struct {struct_type} on field access",
+            )
+        if field_name not in self.structure_table[struct_type]:
+            super().error(
+                ErrorType.NAME_ERROR,
+                f"Field {field_name} does not exist in struct {struct_type}",
+            )
+
     def __get_struct_field_obj(self, struct_ast, field_name):
         if struct_ast.value() is None:
             super().error(
                 ErrorType.FAULT_ERROR,
                 f"Cannot access field {field_name} of nil struct",
             )
+        self.__check_field_in_struct(struct_ast.type(), field_name.split(".")[0])
 
         obj_type, struct_obj = struct_ast.type(), struct_ast.value()
         if not isinstance(struct_obj, Struct):
@@ -647,6 +673,11 @@ class Interpreter(InterpreterBase):
 
             try:
                 if isinstance(struct_obj, Value):
+                    if not struct_obj.value():
+                        super().error(
+                            ErrorType.FAULT_ERROR,
+                            f"Cannot access field {current_field} of nil struct",
+                        )
                     struct_obj = struct_obj.value().get_field(current_field)
                 else:
                     struct_obj = struct_obj.get_field(current_field)

@@ -1,0 +1,19 @@
+struct A {a: int;}
+
+func main(): void {
+  var a: A;
+  a = new A;
+  a = f2();
+  /* prints nil */
+  print(a);
+}
+
+func f2(): A {
+  return nil;
+}
+
+/*
+*OUT*
+nil
+*OUT*
+*/

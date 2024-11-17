@@ -1,0 +1,23 @@
+struct dog {
+ bark: int;
+ bite: int;
+}
+
+ func main() : void {
+  var koda: dog;
+  var kippy: dog;
+  koda = new dog;
+  if (koda != kippy) {
+    print("koda and kippy are not the same object");
+  }
+  kippy.bite = 20; /* Kippy is not initialized, why does this work?*/
+  print(koda.bark, " ", koda.bite); /* prints 10 20 */
+}
+
+
+
+/*
+*OUT*
+ErrorType.FAULT_ERROR
+*OUT*
+*/

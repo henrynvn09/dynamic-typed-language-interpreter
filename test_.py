@@ -225,6 +225,37 @@ true
         """
 """,
     ],
+    [
+        """
+  struct A {
+  a:int;
+}
+
+func main() : void {
+  var a : A;
+  print(a.b);
+}
+
+  """,
+        "",
+    ],
+    [
+        """
+  struct a {
+  name : string;
+}
+struct b {
+  a: a;
+}
+
+func main() : void {
+  var b : b;
+  b = new b;
+  b.a.name = "test";
+}
+  """,
+        "",
+    ],
 ]
 
 
@@ -268,8 +299,8 @@ files = [
 ]
 
 if __name__ == "__main__":
-    # for program, expected_output in tests[-1:]:
-    #     test(program, expected_output, True)
-    for file in files[-1:]:
-        with open(f"fall-24-autograder/{file}", "r") as f:
-            test(f.read(), "")
+    for program, expected_output in tests[-1:]:
+        test(program, expected_output, True)
+    # for file in files[-1:]:
+    #     with open(f"fall-24-autograder/{file}", "r") as f:
+    #         test(f.read(), "")

@@ -24,9 +24,7 @@ class TestScaffold(AbstractTestScaffold):
         self.interpreter_lib = interpreter_lib
 
     def setup(self, test_case):
-        srcfile = itemgetter("srcfile")(
-            test_case
-        )
+        srcfile = itemgetter("srcfile")(test_case)
 
         with open(srcfile, encoding="utf-8") as handle:
             prog_lines = handle.readlines()
@@ -85,7 +83,6 @@ class TestScaffold(AbstractTestScaffold):
 
         return int(passed)
 
-
     def __extract_test_data(self, program, tag):
         in_soln = False
         soln = []
@@ -125,6 +122,7 @@ def __generate_test_suite(version, successes, failures):
         True,
     )
 
+
 def __get_file_names(folder_path):
     files_in_folder = listdir(folder_path)
     filenames = [file.split(".")[0] for file in files_in_folder]
@@ -141,6 +139,7 @@ def generate_test_suite_v1():
         fails,
     )
 
+
 def generate_test_suite_v2():
     """wrapper for generate_test_suite for v2"""
     tests = __get_file_names(getcwd() + "/v2/tests/")
@@ -150,6 +149,7 @@ def generate_test_suite_v2():
         tests,
         fails,
     )
+
 
 def generate_test_suite_v3():
     """wrapper for generate_test_suite for v3"""
@@ -161,6 +161,7 @@ def generate_test_suite_v3():
         fails,
     )
 
+
 def generate_test_suite_v4():
     """wrapper for generate_test_suite for v4"""
     tests = __get_file_names(getcwd() + "/v4/tests/")
@@ -171,12 +172,13 @@ def generate_test_suite_v4():
         fails,
     )
 
+
 async def main():
     """main entrypoint: argparses, delegates to test scaffold, suite generator, gradescope output"""
     if not sys.argv:
         raise ValueError("Error: Missing version number argument")
     version = sys.argv[1]
-    zero_credit = len(sys.argv) > 2 and sys.argv[2] == '--zero-credit'
+    zero_credit = len(sys.argv) > 2 and sys.argv[2] == "--zero-credit"
     module_name = f"interpreterv{version}"
     interpreter = importlib.import_module(module_name)
 
