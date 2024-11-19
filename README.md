@@ -1,51 +1,111 @@
-# Brewin Interpreter Project
-Below is a sample `readme.txt` file based on the requirements and provided instructions. This `readme.txt` includes basic explanations, known issues, usage guidelines, and citations for any external code used.
+# Brewin++ Statically-typed Interpreter Project
 
 ## Project Overview
 
-The core concept behind this project is the implementation of an interpreter that parses and executes Brewin programs by leveraging an **Abstract Syntax Tree (AST)**. The AST represents the hierarchical structure of the source code, breaking it down into nodes that correspond to different language elements, such as functions, statements, expressions, and variables. This tree-based structure allows for a clean separation between parsing, interpretation, and error handling.
+The Brewin++ interpreter extends the original Brewin interpreter by introducing several new features, such as static typing, default return values, coercion, and user-defined structures. These additions enhance type safety, control flow, and program structure, building on the foundation of the original interpreter.
 
-### Abstract Syntax Tree (AST)
+The interpreter leverages an **Abstract Syntax Tree (AST)** to parse and execute Brewin++ programs. The AST provides a hierarchical representation of the program, enabling efficient and organized interpretation.
 
-The AST is a crucial part of the interpreter’s design. During parsing, the Brewin source code is transformed into an AST where each node represents a construct in the language:
-- **Program Node**: Represents the entire Brewin program and holds all function definitions.
-- **Function Definition Nodes**: Encapsulate each function’s name, its list of formal parameters, and a series of statements.
-- **Statement Nodes**: Represent control structures like if-statements, for-loops, return statements, and print statements.
-- **Expression Nodes**: Contain operations, such as arithmetic calculations, boolean expressions, and comparisons.
+## Abstract Syntax Tree (AST)
 
-By building and navigating the AST, the interpreter can efficiently execute each part of the Brewin program. The interpreter uses a **recursive traversal** strategy, where each node type has a corresponding method to evaluate or execute it based on its purpose (e.g., control flow, arithmetic, or logical evaluation).
+The AST is central to the interpreter’s design. Each node represents a distinct language construct, enabling the recursive traversal needed for program execution.
 
-The recursive nature of the AST traversal allows the interpreter to dynamically manage function calls, variable scoping, and control flow, providing a structured yet flexible way to execute Brewin programs.
+### Core Nodes
 
-### Main Files
-- `interpreterv2.py`: The main interpreter file that runs and manages the execution of Brewin programs.
-- Supporting modules like `variable.py`, `statement.py`, etc., as needed to handle different types of nodes and features. (These should be detailed with file names if used.)
+- **Program Node**: Represents the overall program, holding all function and struct definitions.
+- **Function Definition Nodes**: Encapsulate a function's name, parameter list, return type, and body.
+- **Statement Nodes**: Handle control structures like `if` statements, `for` loops, assignments, and returns.
+- **Expression Nodes**: Represent arithmetic, boolean, and comparison operations.
+- **Variable Nodes**: Represent declared variables in the program.
+- **Value Nodes**: Represent constants (e.g., integers, strings, booleans, `nil`).
+
+### New Nodes in Brewin++
+
+- **Struct Definition Node**: Represents user-defined structures and their fields.
+- **Field Definition Node**: Defines individual fields within a structure.
+- **Extended Function Nodes**: Include return type annotations for static typing.
+
+The AST design ensures precise type checking, dynamic program execution, and support for new language features.
+
+---
 
 ## Key Features
-1. **Control Structures**: Supports if-statements and nested if-statements with required braces. It also handles nested for-loops, ensuring that loop conditions are evaluated as boolean expressions.
-2. **Expressions**: Supports arithmetic and logical operators with proper precedence, including:
-   - Arithmetic operations: `+`, `-`, `*`, `/` (integer division).
-   - Comparison operators: `==`, `!=`, `<`, `<=`, `>`, `>=`.
-   - Boolean operations: `||`, `&&`, `!`.
-3. **Return Statements**: Handles return statements within functions, ensuring immediate exits from all nested blocks.
-4. **Scoping Rules**: Implements lexical scoping, ensuring that variables are accessible only within their respective blocks.
-5. **Error Handling**: Implements error types for:
-   - Type errors (`ErrorType.TYPE_ERROR`) when conditions or operations involve mismatched or incorrect types.
-   - Name errors (`ErrorType.NAME_ERROR`) for variables referenced outside their scope.
-6. **Function Calls**: Allows function calls within expressions, supporting complex expressions and nesting.
-7. **Constants and Variables**: Allows the use of boolean, integer, and string constants, including handling of negative values.
 
-## Citations
-- **External Code Use**: The following code snippet was found and adapted from an online source:
-  ```python
-  # Citation: The following code was found on stackoverflow.com/questions/12345...
-  def example_function():
-      pass
-  # End of copied code
-  ```
+### Existing Features from Brewin
+
+1. **Control Structures**:
+   - Supports `if` statements and nested `if` statements with mandatory braces.
+   - Supports `for` loops, allowing nesting and boolean conditions.
+
+2. **Expressions**:
+   - Handles arithmetic operators (`+`, `-`, `*`, `/`) with proper precedence.
+   - Supports comparison (`==`, `!=`, `<`, `<=`, `>`, `>=`) and logical operators (`&&`, `||`, `!`).
+
+3. **Function Calls**:
+   - Functions can be called within expressions, supporting nesting and parameterized calls.
+   - Return statements enable early exit from functions.
+
+4. **Scoping Rules**:
+   - Implements lexical scoping to restrict variable visibility to their respective blocks.
+
+5. **Error Handling**:
+   - Type errors (`ErrorType.TYPE_ERROR`) for invalid operations.
+   - Name errors (`ErrorType.NAME_ERROR`) for undefined variables or fields.
+
+6. **Constants and Variables**:
+   - Supports boolean, integer, and string constants, including negative integers.
+
+---
+
+### New Features in Brewin++
+
+1. **Static Typing**:
+   - All variables, function parameters, and return types require explicit type annotations.
+   - Type mismatches result in a `ErrorType.TYPE_ERROR`.
+
+2. **Default Return Values**:
+   - Non-void functions must always return a value. If no explicit return is provided, the interpreter returns the default value for the function's return type:
+     - `int`: `0`
+     - `bool`: `false`
+     - `string`: `""`
+     - Struct types: `nil`
+
+3. **Coercion**:
+   - Integer-to-boolean coercion:
+     - `0` is coerced to `false`.
+     - Non-zero integers are coerced to `true`.
+   - Supported in assignments, parameter passing, return statements, and control structures like `if` and `for`.
+
+4. **User-Defined Structures**:
+   - Structures are defined using `struct`, allowing complex data modeling:
+     ```plaintext
+     struct Person {
+         name: string;
+         age: int;
+     }
+     ```
+   - Structures must be allocated with the `new` keyword, and their fields are initialized with default values.
+   - Fields are accessed using the dot operator (e.g., `person.name`).
+
+5. **Enhanced Error Handling**:
+   - Fault errors (`ErrorType.FAULT_ERROR`) for dereferencing a `nil` object.
+   - Name errors (`ErrorType.NAME_ERROR`) for accessing undefined fields in a structure.
+
+6. **Updated Print Function**:
+   - The `print()` function can handle all types, including `nil`, and its return type is now `void`.
+
+---
+
+## Usage
+
+1. Install Python 3.11 or later.
+2. Clone the project repository or copy all required files to your environment.
+3. Run the interpreter:
+   ```bash
+   python interpreterv3.py <path_to_brewin_program>
+   ```
+
 
 ## Licensing and Attribution
 
-This is an unlicensed repository; even though the source code is public, it is **not** governed by an open-source license.
-
-This code was primarily written by [Carey Nachenberg](http://careynachenberg.weebly.com/), with support from his TAs for the [Fall 2024 iteration of CS 131](https://ucla-cs-131.github.io/fall-24-website/).
+This project was developed as part of CS131 Fall 2024 by Carey Nachenberg. See the [CS131 website](https://ucla-cs-131.github.io/fall-24-website/) for more information.
