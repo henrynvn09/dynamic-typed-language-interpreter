@@ -2,7 +2,7 @@
 
 ## Branches
 - `part2-dynamically-typed-interpreter` dynamically typed Interpreter
-- `brewin++_statically_typed` Statically typed Interpreter (dynamically typed + type + coercion + struct)
+- `brewin++_statically_typed` Statically typed Interpreter (dynamically typed + variables/arguments/return type + coercion + struct)
 
 ## Project Overview
 
