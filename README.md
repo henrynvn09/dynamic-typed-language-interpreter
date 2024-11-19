@@ -1,5 +1,9 @@
 # Brewin++ Statically-typed Interpreter Project
 
+## Branches
+- `part2-dynamically-typed-interpreter` dynamically typed Interpreter
+- `brewin++_statically_typed` Statically typed Interpreter (dynamically typed + type + coercion + struct)
+
 ## Project Overview
 
 The Brewin++ interpreter extends the original Brewin interpreter by introducing several new features, such as static typing, default return values, coercion, and user-defined structures. These additions enhance type safety, control flow, and program structure, building on the foundation of the original interpreter.
