@@ -1,6 +1,15 @@
+func t() {
+ print("t");
+ return true;
+}
+
+func f() {
+ print("f");
+ return false;
+}
+
 func main() {
-  var x;
-  x = foo(y);
-  print("OK");
-  print(x);  /* NAME_ERROR due to undefined y is deferred to this line */
+  print(t() && f());
+  print("---");
+  print(f() && t());
 }

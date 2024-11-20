@@ -401,7 +401,11 @@ def test(program_source, expected_output, debug=False):
     # assert out == clean_output
 
 
-files = ["v4/fails/test_lazy_1.br", "v4/tests/test_lazy_upd1.br"]
+files = [
+    "v4/fails/test_lazy_1.br",
+    "v4/tests/test_lazy_upd1.br",
+    "v4/tests/test_lazy_4.br",
+]
 
 if __name__ == "__main__":
     # for program, expected_output in tests[-1:]:

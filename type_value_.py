@@ -24,7 +24,7 @@ class Value:
         return self.t
 
     def eval_if_lazy(self):
-        if self.t == Type.FUNC:
+        while self.t == Type.FUNC:
             result = self.v()
             self.t = result.t
             self.v = result.v

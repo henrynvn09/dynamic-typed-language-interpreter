@@ -309,11 +309,18 @@ class Interpreter(InterpreterBase):
         return self.__lazify(lambda: evaluate(value_obj), lazy)
 
     def __eval_op(self, arith_ast, lazy):
-        left_value_obj = self.__eval_expr(arith_ast.get("op1"), lazy)
-        right_value_obj = self.__eval_expr(arith_ast.get("op2"), lazy)
+        left_value_obj = self.__eval_expr(arith_ast.get("op1"), lazy=True)
+        right_value_obj = self.__eval_expr(arith_ast.get("op2"), lazy=True)
 
         def calculate(left_value_obj, right_value_obj):
             left_value_obj.eval_if_lazy()
+
+            # Short Circuiting for AND and OR Operators depends on the left value
+            if arith_ast.elem_type == "&&" and not left_value_obj.value():
+                return Value(Type.BOOL, False)
+            if arith_ast.elem_type == "||" and left_value_obj.value():
+                return Value(Type.BOOL, True)
+
             right_value_obj.eval_if_lazy()
             # Special case for == and != operators comparing different types and nil
             if arith_ast.elem_type in Interpreter.BIN_OPS_EXCEPT and (

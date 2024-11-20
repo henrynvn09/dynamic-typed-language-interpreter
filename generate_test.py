@@ -5,7 +5,7 @@ import requests
 URL = "https://barista-f23.fly.dev/f24"
 VERSION = "4"
 OUT_FOLDER = "fall-24-autograder/v4/"
-FILE_NAME = "lazy"
+FILE_NAME = "short_circuit"
 
 
 def create_unique_file(folder, file_name, input, output):
