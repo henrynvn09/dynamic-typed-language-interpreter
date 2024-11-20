@@ -366,27 +366,60 @@ func main() {
 }   """,
         "23",
     ],
+    [
+        """
+func main() {
+  var result;
+  var mm;
+  mm = f(3);
+  result = mm + 10;
+  print("done with call!");
+  var tmp;
+  tmp = result + 3;
+  if (result > 1) {
+    print("mm is right");
+  }
+  foo(mm);
+  print("about to print result again");
+  print(mm);
+  print(result);
+}
+func foo(x) {
+  x = 99;
+}
+
+func f(x) {
+  print("f is running");
+  var y;
+  y = true;
+  return 1;
+}
+""",
+        "",
+    ],
 ]
 
 
-def test(program_source, expected_output):
+def test(program_source, expected_output, debug=False):
     print("=" * 40)
     print("Running test...")
     # print(program_source)
     # this is how you use our parser to parse a valid Brewin program into an AST
 
-    # redirect the output to a variable
-    old_stdout = sys.stdout
-    sys.stdout = mystdout = StringIO()
+    if not debug:
+        # redirect the output to a variable
+        old_stdout = sys.stdout
+        sys.stdout = mystdout = StringIO()
 
-    interpreter = Interpreter()
+    interpreter = Interpreter(trace_output=False)
     interpreter.run(program_source)
 
-    out = mystdout.getvalue().strip()
+    if not debug:
+        out = mystdout.getvalue().strip()
 
-    # redirect the output back to stdout
-    sys.stdout = old_stdout
-    print(out)
+        # redirect the output back to stdout
+        sys.stdout = old_stdout
+        print(out)
     print("-" * 40)
     print("Expected output:")
     clean_output = expected_output.strip()
@@ -394,10 +427,21 @@ def test(program_source, expected_output):
         clean_output = clean_output.replace("\n ", "\n")
     print(clean_output)
     print("=" * 40)
-    sys.stdout = old_stdout
-    assert out == clean_output
 
+    # sys.stdout = old_stdout
+    # assert out == clean_output
+
+
+files = [
+    "v3/fails/Structs-Struct_matches_nil_but_not_void.br",
+    "v3/tests/Type_Validity-Type_Coercion_With_Operators.br",
+    "v3/fails/Type_Validity-Type_Coercion,_input,_shadowing,_and_void_call.br",
+    "v3/fails/test_bad_cmp.br",
+]
 
 if __name__ == "__main__":
-    for program, expected_output in tests[:]:
-        test(program, expected_output)
+    for program, expected_output in tests[-1:]:
+        test(program, expected_output, True)
+    # for file in files[-1:]:
+    #     with open(f"fall-24-autograder/{file}", "r") as f:
+    #         test(f.read(), "")

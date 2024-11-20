@@ -7,6 +7,7 @@ class Type:
     BOOL = "bool"
     STRING = "string"
     NIL = "nil"
+    FUNC = "func"
 
 
 # Represents a value, which has a type and its value
@@ -16,10 +17,18 @@ class Value:
         self.v = value
 
     def value(self):
+        self.eval_if_lazy()
         return self.v
 
     def type(self):
         return self.t
+
+    def eval_if_lazy(self):
+        if self.t == Type.FUNC:
+            result = self.v()
+            self.t = result.type()
+            self.v = result.value()
+        return False
 
 
 def get_printable(val):
