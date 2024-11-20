@@ -1,0 +1,13 @@
+func main() {
+x = 5;
+y = x + 10;
+x = 100;
+print(y);
+}
+
+
+/*
+*OUT*
+ErrorType.NAME_ERROR
+*OUT*
+*/

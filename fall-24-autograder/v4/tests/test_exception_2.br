@@ -1,0 +1,30 @@
+func error_function() {
+  try {
+     raise "error";
+  }
+  catch "z2" {
+    print("z2");
+  }
+  print(3);
+  return 0;
+}
+
+func main() {
+  var x;
+  x = error_function() + 10;
+  print("Before x is evaluated");
+  try {
+    print(x);
+  }
+  catch "error" {
+    print("Caught an error during evaluation of x");
+  }
+}
+
+
+/*
+*OUT*
+Before x is evaluated
+Caught an error during evaluation of x
+*OUT*
+*/

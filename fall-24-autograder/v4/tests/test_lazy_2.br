@@ -1,0 +1,38 @@
+func main() {
+  var result;
+  var mm;
+  mm = f(3);
+  result = mm + 10;
+  print("done with call!");
+  var tmp;
+  tmp = result + 3;
+  if (result > 1) {
+    print("mm is right");
+  }
+  foo(mm);
+  print("about to print result again");
+  print(mm);
+  print(result);
+}
+func foo(x) {
+  x = 99;
+}
+
+func f(x) {
+  print("f is running");
+  var y;
+  y = true;
+  return 1;
+}
+
+
+/*
+*OUT*
+done with call!
+f is running
+mm is right
+about to print result again
+1
+11
+*OUT*
+*/

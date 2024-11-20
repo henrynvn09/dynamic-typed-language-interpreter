@@ -10,3 +10,10 @@ func main() {
   print(result);      /* Error will occur when result is evaluated */
 }
 
+
+/*
+*OUT*
+Assigned result!
+ErrorType.NAME_ERROR
+*OUT*
+*/

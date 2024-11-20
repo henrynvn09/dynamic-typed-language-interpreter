@@ -1,0 +1,22 @@
+func foo(x) {
+  print(x);
+  return x;
+}
+
+func main() {
+var x;
+var y;
+x = foo(3); 
+y = x + 10;
+print(y);
+print(x); /* foo(3) is NOT re-evaluated */
+}
+
+
+/*
+*OUT*
+3
+13
+3
+*OUT*
+*/
