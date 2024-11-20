@@ -30,7 +30,10 @@ class Interpreter(InterpreterBase):
     def run(self, program):
         ast = parse_program(program)
         self.__set_up_function_table(ast)
-        self.__run_function("main", lazy=False)
+        try:
+            self.__run_function("main", lazy=False)
+        except UserException:
+            super().error(ErrorType.FAULT_ERROR, "Uncaught exception")
 
     def __run_function(self, func_name, passed_arguments=[], lazy=True):
         """run a function based on name and list of arguments, if lazy argument is evaluated lazily and return lazy value"""
