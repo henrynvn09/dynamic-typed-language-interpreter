@@ -1,17 +1,11 @@
 # Add to spec:
 # - printing out a nil value is undefined
 
-from env_ import EnvironmentManager
+from env_ import EnvironmentStackManager, ScopeType
 from type_value_ import Type, Value, get_printable
 from intbase import InterpreterBase, ErrorType
 from brewparse import parse_program
 from element import Element
-from copy import deepcopy
-
-
-class ScopeType:
-    FUNCTION = "function"
-    BLOCK = "block"
 
 
 # Main interpreter class
@@ -27,8 +21,7 @@ class Interpreter(InterpreterBase):
         self.trace_output = trace_output
         self.__setup_ops()
         self.func_name_to_ast = {}  # dict of function names to its node
-        self.variable_scope_stack = []  # stack of function call
-        self.env = None  # EnvironmentManager of the current function scope
+        self.env_scope_stack = EnvironmentStackManager()  # stack of function call
 
     # run a program that's provided in a string
     # usese the provided Parser found in brewparse.py to parse the program
@@ -45,34 +38,16 @@ class Interpreter(InterpreterBase):
         func_def: Element = self.__get_func(func_name, passed_arguments)
 
         def run():
-            self.__create_new_function_scope(
-                func_def.get("name"), func_def.get("args"), evaluated_args
+            self.env_scope_stack.create_new_function_scope(
+                func_def.get("args"),
+                evaluated_args,
+                self.__arg_def,
             )
             _, return_val = self.__run_statements(func_def.get("statements"))
-            self.__destroy_top_scope()
+            self.env_scope_stack.destroy_top_scope()
             return return_val if return_val is not None else Value(Type.NIL, None)
 
         return self.__lazify(run, lazy)
-
-    def __create_new_function_scope(self, func_name, args, values):
-        """Initialize new variable scope for a function"""
-        self.variable_scope_stack.append((ScopeType.FUNCTION, EnvironmentManager()))
-        # current environment is top of stack
-        self.env = self.variable_scope_stack[-1][1]
-        for arg, value in zip(args, values):
-            self.__arg_def(arg.get("name"), value)
-
-    def __create_new_block_scope(self):
-        """Initialize new variable scope for a block"""
-        self.variable_scope_stack.append((ScopeType.BLOCK, EnvironmentManager()))
-        self.env = self.variable_scope_stack[-1][1]
-
-    def __destroy_top_scope(self):
-        """Destroy the current function scope, doesn't check errors"""
-        self.variable_scope_stack.pop()
-        self.env = (
-            self.variable_scope_stack[-1][1] if self.variable_scope_stack else None
-        )
 
     def __set_up_function_table(self, ast):
         """function table is a dictionary of (function name, number of arguments) to the AST node"""
@@ -92,7 +67,7 @@ class Interpreter(InterpreterBase):
     def __run_statements(self, statements):
         "if there is a return statement, return True, value. otherwise return False, None"
         # create a block scope
-        self.__create_new_block_scope()
+        self.env_scope_stack.create_new_block_scope()
 
         for statement in statements:
             if self.trace_output:
@@ -107,19 +82,19 @@ class Interpreter(InterpreterBase):
             elif statement.elem_type == InterpreterBase.IF_NODE:
                 is_return, return_value = self.__do_if(statement)
                 if is_return:
-                    self.__destroy_top_scope()
+                    self.env_scope_stack.destroy_top_scope()
                     return is_return, return_value
             elif statement.elem_type == InterpreterBase.RETURN_NODE:
-                self.__destroy_top_scope()
+                self.env_scope_stack.destroy_top_scope()
                 return True, self.__return_value(statement)
             elif statement.elem_type == InterpreterBase.FOR_NODE:
                 is_return, return_value = self.__do_for(statement)
                 if is_return:
-                    self.__destroy_top_scope()
+                    self.env_scope_stack.destroy_top_scope()
                     return is_return, return_value
 
         # destroy block scope
-        self.__destroy_top_scope()
+        self.env_scope_stack.destroy_top_scope()
         return False, None
 
     def __return_value(self, return_ast):
@@ -134,7 +109,7 @@ class Interpreter(InterpreterBase):
         update = for_ast.get("update")
         statements = for_ast.get("statements")
 
-        self.__create_new_block_scope()
+        self.env_scope_stack.create_new_block_scope()
         self.__assign(init)
 
         evaluated_condition = self.__eval_expr(condition, lazy=False)
@@ -146,11 +121,11 @@ class Interpreter(InterpreterBase):
 
             is_return, return_value = self.__run_statements(statements)
             if is_return:
-                self.__destroy_top_scope()  # TODO: destroy until function scope
+                self.env_scope_stack.destroy_top_scope()  # TODO: destroy until function scope
                 return is_return, return_value
             self.__run_statements([update])
             evaluated_condition = self.__eval_expr(condition, lazy=False)
-        self.__destroy_top_scope()
+        self.env_scope_stack.destroy_top_scope()
         return False, None
 
     def __do_if(self, if_ast):
@@ -178,7 +153,6 @@ class Interpreter(InterpreterBase):
 
     def __call_func(self, call_node, lazy):
         func_name = call_node.get("name")
-        func_args = call_node.get("args")
 
         args = []
         for arg in call_node.get("args"):
@@ -225,7 +199,7 @@ class Interpreter(InterpreterBase):
         value_obj = self.__eval_expr(assign_ast.get("expression"), lazy=True)
 
         # look up variable from current scope up to the closest function scope
-        for scope_type, env_iterator in reversed(self.variable_scope_stack):
+        for scope_type, env_iterator in reversed(self.env_scope_stack):
             if env_iterator.get(var_name) is not None:
                 env_iterator.set(var_name, value_obj)
                 break
@@ -237,14 +211,14 @@ class Interpreter(InterpreterBase):
 
     def __var_def(self, var_ast):
         var_name = var_ast.get("name")
-        if not self.env.create(var_name, Value(Type.INT, 0)):
+        if not self.env_scope_stack.top.create(var_name, Value(Type.INT, 0)):
             super(self.__class__, self).error(
                 ErrorType.NAME_ERROR, f"Duplicate definition for variable {var_name}"
             )
 
     def __arg_def(self, var_name, value):
         """Define a new argument in the current function scope with passed value node"""
-        if not self.env.create(var_name, value):
+        if not self.env_scope_stack.top.create(var_name, value):
             super().error(
                 ErrorType.NAME_ERROR,
                 f"Duplicate definition for function argument name {var_name}",
@@ -253,7 +227,7 @@ class Interpreter(InterpreterBase):
     def __get_var_value(self, expr_ast):
         "look up variable from current scope up to the closest function scope, return its value"
         var_name = expr_ast.get("name")
-        for scope_type, env_iterator in reversed(self.variable_scope_stack):
+        for scope_type, env_iterator in reversed(self.env_scope_stack):
             val = env_iterator.get(var_name)
             if val is not None:
                 return val
