@@ -164,6 +164,15 @@ class Interpreter(InterpreterBase):
         try:
             is_return, return_value = self.__run_statements(statements)
             self.env_scope_stack.unmark_scope()
+        except ZeroDivisionError:
+            self.env_scope_stack.jump_to_marked_scope()
+
+            if UserException.DIVBYZERO in exceptions:
+                is_return, return_value = self.__run_statements(
+                    exceptions[UserException.DIVBYZERO]
+                )
+            else:
+                raise ZeroDivisionError
         except UserException as e:
             self.env_scope_stack.jump_to_marked_scope()
 

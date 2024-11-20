@@ -1,0 +1,19 @@
+func main() {
+  try {
+    var a;
+    a = 10;
+    raise "exc";
+  }
+  catch "exc" {
+    print("catched");
+  }
+  print(a); 
+}
+
+
+/*
+*OUT*
+catched
+ErrorType.NAME_ERROR
+*OUT*
+*/
