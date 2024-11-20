@@ -366,37 +366,6 @@ func main() {
 }   """,
         "23",
     ],
-    [
-        """
-func main() {
-  var result;
-  var mm;
-  mm = f(3);
-  result = mm + 10;
-  print("done with call!");
-  var tmp;
-  tmp = result + 3;
-  if (result > 1) {
-    print("mm is right");
-  }
-  foo(mm);
-  print("about to print result again");
-  print(mm);
-  print(result);
-}
-func foo(x) {
-  x = 99;
-}
-
-func f(x) {
-  print("f is running");
-  var y;
-  y = true;
-  return 1;
-}
-""",
-        "",
-    ],
 ]
 
 
@@ -433,15 +402,12 @@ def test(program_source, expected_output, debug=False):
 
 
 files = [
-    "v3/fails/Structs-Struct_matches_nil_but_not_void.br",
-    "v3/tests/Type_Validity-Type_Coercion_With_Operators.br",
-    "v3/fails/Type_Validity-Type_Coercion,_input,_shadowing,_and_void_call.br",
-    "v3/fails/test_bad_cmp.br",
+    "v4/fails/test_lazy_1.br",
 ]
 
 if __name__ == "__main__":
-    for program, expected_output in tests[-1:]:
-        test(program, expected_output, True)
-    # for file in files[-1:]:
-    #     with open(f"fall-24-autograder/{file}", "r") as f:
-    #         test(f.read(), "")
+    # for program, expected_output in tests[-1:]:
+    #     test(program, expected_output, True)
+    for file in files[-1:]:
+        with open(f"fall-24-autograder/{file}", "r") as f:
+            test(f.read(), "", True)

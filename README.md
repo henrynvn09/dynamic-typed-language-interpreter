@@ -1,4 +1,5 @@
 # Brewin Interpreter Project
+
 Below is a sample `readme.txt` file based on the requirements and provided instructions. This `readme.txt` includes basic explanations, known issues, usage guidelines, and citations for any external code used.
 
 ## Project Overview
@@ -8,6 +9,7 @@ The core concept behind this project is the implementation of an interpreter tha
 ### Abstract Syntax Tree (AST)
 
 The AST is a crucial part of the interpreter’s design. During parsing, the Brewin source code is transformed into an AST where each node represents a construct in the language:
+
 - **Program Node**: Represents the entire Brewin program and holds all function definitions.
 - **Function Definition Nodes**: Encapsulate each function’s name, its list of formal parameters, and a series of statements.
 - **Statement Nodes**: Represent control structures like if-statements, for-loops, return statements, and print statements.
@@ -18,10 +20,12 @@ By building and navigating the AST, the interpreter can efficiently execute each
 The recursive nature of the AST traversal allows the interpreter to dynamically manage function calls, variable scoping, and control flow, providing a structured yet flexible way to execute Brewin programs.
 
 ### Main Files
+
 - `interpreterv2.py`: The main interpreter file that runs and manages the execution of Brewin programs.
 - Supporting modules like `variable.py`, `statement.py`, etc., as needed to handle different types of nodes and features. (These should be detailed with file names if used.)
 
 ## Key Features
+
 1. **Control Structures**: Supports if-statements and nested if-statements with required braces. It also handles nested for-loops, ensuring that loop conditions are evaluated as boolean expressions.
 2. **Expressions**: Supports arithmetic and logical operators with proper precedence, including:
    - Arithmetic operations: `+`, `-`, `*`, `/` (integer division).
@@ -35,7 +39,15 @@ The recursive nature of the AST traversal allows the interpreter to dynamically 
 6. **Function Calls**: Allows function calls within expressions, supporting complex expressions and nesting.
 7. **Constants and Variables**: Allows the use of boolean, integer, and string constants, including handling of negative values.
 
+## To test:
+
+1. add your code to generate_test.br
+2. run `python3 generate_test.py`
+3. create a symlink of the codes to folder fall-24-autograder. E.g. `ln -s ../interpreter_.py interpreterv4.py`
+4. `python tester.py 4`
+
 ## Citations
+
 - **External Code Use**: The following code snippet was found and adapted from an online source:
   ```python
   # Citation: The following code was found on stackoverflow.com/questions/12345...
@@ -48,4 +60,4 @@ The recursive nature of the AST traversal allows the interpreter to dynamically 
 
 This is an unlicensed repository; even though the source code is public, it is **not** governed by an open-source license.
 
-This code was primarily written by [Carey Nachenberg](http://careynachenberg.weebly.com/), with support from his TAs for the [Fall 2024 iteration of CS 131](https://ucla-cs-131.github.io/fall-24-website/).
+This project was developed as part of CS131 Fall 2024 by Carey Nachenberg. See the CS131 website for more information.
