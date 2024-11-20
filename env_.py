@@ -35,6 +35,7 @@ class EnvironmentStackManager:
     def __init__(self):
         self.variable_scope_stack = []  # stack of function call
         self.top = None  # EnvironmentManager of the current function scope
+        self.marked_scope = []
 
     def create_new_function_scope(self, args, values, arg_def):
         """Initialize new variable scope for a function"""
@@ -52,6 +53,23 @@ class EnvironmentStackManager:
     def destroy_top_scope(self):
         """Destroy the current function scope, doesn't check errors"""
         self.variable_scope_stack.pop()
+        self.top = (
+            self.variable_scope_stack[-1][1] if self.variable_scope_stack else None
+        )
+
+    def mark_scope(self):
+        """Mark the current scope to the stack of scopes, used specifically for marking
+        the start of the try-catch block"""
+        self.marked_scope.append(len(self.variable_scope_stack))
+
+    def unmark_scope(self):
+        """Unmark the current scope from the stack of scopes, if no error, then we can unmark the scope"""
+        self.marked_scope.pop()
+
+    def jump_to_marked_scope(self):
+        "If an error occurs, jump to the marked scope of the try-catch block"
+        marked_scope = self.marked_scope.pop()
+        self.variable_scope_stack = self.variable_scope_stack[:marked_scope]
         self.top = (
             self.variable_scope_stack[-1][1] if self.variable_scope_stack else None
         )

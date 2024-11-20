@@ -6,6 +6,7 @@ from type_value_ import Type, Value, get_printable
 from intbase import InterpreterBase, ErrorType
 from brewparse import parse_program
 from element import Element
+from user_exception_ import UserException
 
 
 # Main interpreter class
@@ -92,6 +93,13 @@ class Interpreter(InterpreterBase):
                 if is_return:
                     self.env_scope_stack.destroy_top_scope()
                     return is_return, return_value
+            elif statement.elem_type == InterpreterBase.TRY_NODE:
+                is_return, return_value = self.__do_try_catch(statement)
+                if is_return:
+                    self.env_scope_stack.destroy_top_scope()
+                    return is_return, return_value
+            elif statement.elem_type == InterpreterBase.RAISE_NODE:
+                self.__do_raise(statement)
 
         # destroy block scope
         self.env_scope_stack.destroy_top_scope()
@@ -144,6 +152,34 @@ class Interpreter(InterpreterBase):
         else:
             is_return, return_value = self.__run_statements(else_statements)
         return is_return, return_value
+
+    def __do_try_catch(self, try_ast):
+        statements = try_ast.get("statements")
+        catchers = try_ast.get("catchers")
+        exceptions = {c.get("exception_type"): c.get("statements") for c in catchers}
+
+        # Mark the current scope as the start of the try-catch block
+        self.env_scope_stack.mark_scope()
+
+        try:
+            is_return, return_value = self.__run_statements(statements)
+            self.env_scope_stack.unmark_scope()
+        except UserException as e:
+            self.env_scope_stack.jump_to_marked_scope()
+
+            if e.exception_type in exceptions:
+                is_return, return_value = self.__run_statements(
+                    exceptions[e.exception_type]
+                )
+            else:
+                raise e
+        return is_return, return_value
+
+    def __do_raise(self, raise_ast):
+        "raise is eagerly evaluated"
+        exception_type = self.__eval_expr(raise_ast.get("exception_type"), lazy=False)
+
+        raise UserException(exception_type.value())
 
     def __lazify(self, func, lazy):
         "return a lazy version of the function if lazy is True"

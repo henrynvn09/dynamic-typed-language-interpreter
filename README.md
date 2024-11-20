@@ -24,12 +24,19 @@ Key node types include:
 [Specification](CS131 Fall 24 Project #4.pdf)
 
 1. **Lazy Evaluation**:
+
    - Expressions are evaluated only when their values are required, improving efficiency.
    - Results of evaluated expressions are cached for reuse.
+   - Idea: Each variable links to a Value block. A lazy expression links to the Value block,
+     thus it get updated normally
+
 2. **Exception Handling**:
 
    - `raise` statements and `try/catch` blocks support error handling.
    - Built-in `div0` exception for division by zero.
+   - Idea: Create a User defined exception that hold all exception that related to user's defined in catch methods. Then ultilize try-catch to take the flow
+     - challenge: it the function scope aren't automatically popped to the same scope
+       - Solution: Before entering a try-catch block, mark the current scope. If we reach the end of try block: unmark it. If we hit an exception, pop all inside scope until the marked scope is on the current one.
 
 3. **Short-Circuiting**:
 
