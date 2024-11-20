@@ -178,6 +178,11 @@ class Interpreter(InterpreterBase):
     def __do_raise(self, raise_ast):
         "raise is eagerly evaluated"
         exception_type = self.__eval_expr(raise_ast.get("exception_type"), lazy=False)
+        if exception_type.type() != Type.STRING:
+            super().error(
+                ErrorType.TYPE_ERROR,
+                "Raise statement must have a string exception type",
+            )
 
         raise UserException(exception_type.value())
 
