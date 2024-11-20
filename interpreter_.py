@@ -146,7 +146,7 @@ class Interpreter(InterpreterBase):
 
             is_return, return_value = self.__run_statements(statements)
             if is_return:
-                self.__destroy_top_scope()
+                self.__destroy_top_scope()  # TODO: destroy until function scope
                 return is_return, return_value
             self.__run_statements([update])
             evaluated_condition = self.__eval_expr(condition, lazy=False)
@@ -201,7 +201,7 @@ class Interpreter(InterpreterBase):
             return self.__lazify(lambda: self.__call_input(func_name, args), lazy)
 
         return self.__lazify(
-            lambda: self.__run_function(func_name, func_args, lazy=False), lazy
+            lambda: self.__run_function(func_name, args, lazy=False), lazy
         )
 
     def __call_input(self, func_name, args):

@@ -26,9 +26,8 @@ class Value:
     def eval_if_lazy(self):
         if self.t == Type.FUNC:
             result = self.v()
-            self.t = result.type()
-            self.v = result.value()
-        return False
+            self.t = result.t
+            self.v = result.v
 
 
 def get_printable(val):
