@@ -258,7 +258,12 @@ class Interpreter(InterpreterBase):
             if val is not None:
                 return val
             if scope_type == ScopeType.FUNCTION and val is None:
-                super().error(ErrorType.NAME_ERROR, f"Variable {var_name} not found")
+                return Value(
+                    Type.FUNC,
+                    lambda: super(self.__class__, self).error(
+                        ErrorType.NAME_ERROR, f"Variable {var_name} not found"
+                    ),
+                )
 
     def __eval_expr(self, expr_ast, lazy):
         if isinstance(expr_ast, Value) and not lazy:
