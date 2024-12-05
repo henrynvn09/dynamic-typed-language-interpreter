@@ -210,7 +210,7 @@ class Interpreter(InterpreterBase):
 
         args = []
         for arg in call_node.get("args"):
-            result = self.__eval_expr(arg, lazy)  # result is a Value object
+            result = self.__eval_expr(arg, True)  # result is a Value object
             args.append(result)
 
         if func_name == "print":
