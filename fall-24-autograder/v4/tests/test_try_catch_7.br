@@ -1,0 +1,31 @@
+func bad() {
+	raise "bar";
+	return 1;
+}
+
+func main() {
+	var x;
+	x = bad();
+	try {
+	  try {
+		inputi(x);
+	  }
+	  catch "bar" {
+	    print("caught 1");
+	    raise "bar";
+	  }
+	}
+	catch "bar" {
+		print("caught 2");
+	}
+	print("safe!");
+}
+
+
+/*
+*OUT*
+caught 1
+caught 2
+safe!
+*OUT*
+*/

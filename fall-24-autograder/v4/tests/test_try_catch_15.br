@@ -1,0 +1,45 @@
+func main() {
+  var a;
+  a = 45;
+  try {
+    try {
+      try {
+        if (true) {
+          var a;
+          for (a = ""; a != "00000"; a = a + "0") {
+            print(a);
+            if (a == "000") {
+              raise "inception";
+            }
+          }
+        }
+      }
+      catch "noop" {
+        print("noop");
+      }
+    }
+    catch "noop" {
+      print("noop");
+    }
+  }
+  catch "inception" {
+    print(a);
+    var a;
+    a = nil;
+    print(a != nil);
+  }
+  print(a);
+}
+
+
+/*
+*OUT*
+
+0
+00
+000
+45
+false
+45
+*OUT*
+*/

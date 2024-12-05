@@ -1,0 +1,17 @@
+func inc(z) {
+ return z + 1;
+}
+
+func main() {
+ var a;
+ a = 0;
+ a = inc(a);
+ print(a);
+}
+
+
+/*
+*OUT*
+1
+*OUT*
+*/

@@ -1,0 +1,18 @@
+func main() {
+	  var result;
+  var x;
+  
+  x = 3;
+  result = x + 2;
+  x = 2;
+
+
+  print(result);
+}
+
+
+/*
+*OUT*
+5
+*OUT*
+*/

@@ -1,0 +1,21 @@
+func foo() {
+print ("foo");
+return bar();
+}
+
+func bar() {
+print ("bar");
+raise "a";
+}
+
+
+func main() {
+foo ();
+}
+
+
+/*
+*OUT*
+foo
+*OUT*
+*/

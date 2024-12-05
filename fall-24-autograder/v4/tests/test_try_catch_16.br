@@ -1,0 +1,20 @@
+func main() {
+  try {
+    raise "";
+  }
+  catch "no match" {
+    print("must not print");
+  }
+  catch "" {
+    print("hello");
+  }
+  print("world");
+}
+
+
+/*
+*OUT*
+hello
+world
+*OUT*
+*/

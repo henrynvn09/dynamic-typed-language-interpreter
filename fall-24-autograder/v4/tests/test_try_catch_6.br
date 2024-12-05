@@ -1,0 +1,22 @@
+func main() {
+  var x;
+  var y;
+  x = 10;
+  x = x + f(5); /* line A */
+  y = x;
+  x = x + f(6); /* line B */
+  print(x);
+  print(y);
+}
+
+func f(x) {
+  return x;
+}
+
+
+/*
+*OUT*
+21
+15
+*OUT*
+*/

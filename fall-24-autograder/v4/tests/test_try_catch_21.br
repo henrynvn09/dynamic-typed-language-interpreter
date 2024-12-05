@@ -1,0 +1,24 @@
+func main() {
+var result;
+result = f(g(4));
+print(result);
+}
+
+func f(x) {
+print("f is running");
+return x + 2;
+}
+
+func g(y) {
+print("g is running");
+return y * y;
+}
+
+
+/*
+*OUT*
+f is running
+g is running
+18
+*OUT*
+*/

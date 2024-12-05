@@ -1,0 +1,37 @@
+func recursive_nested(level) {
+  try {
+    if (level == 0) {
+      raise "nested_exception";
+    }
+    print("Before recursion at level: ", level);
+    recursive_nested(level - 1); /* Recursive call */
+    print("After recursion at level: ", level); /* Should not print */
+  }
+  catch "nested_exception" {
+    print("Caught nested_exception at level: ", level);
+    raise "propagate_up"; /* Propagate a different exception */
+  }
+}
+
+func main() {
+  try {
+    recursive_nested(4); /* Start recursive calls */
+  }
+    catch "propagate_up" {
+    print("Caught propagate_up in main");
+  }
+  print("End of main");
+}
+
+
+/*
+*OUT*
+Before recursion at level: 4
+Before recursion at level: 3
+Before recursion at level: 2
+Before recursion at level: 1
+Caught nested_exception at level: 0
+Caught propagate_up in main
+End of main
+*OUT*
+*/

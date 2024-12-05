@@ -1,0 +1,34 @@
+func zero() {
+  print("zero");
+  return 0;
+}
+
+func inc(x) {
+ print("inc:", x);
+ return x + 1;
+}
+
+func main() {
+ var a;
+ for (a = 0; zero() + a < 3; a = inc(a)) {
+   print(a);
+ }
+ print("d");
+}
+
+
+/*
+*OUT*
+zero
+0
+zero
+inc:0
+1
+zero
+inc:1
+2
+zero
+inc:2
+d
+*OUT*
+*/

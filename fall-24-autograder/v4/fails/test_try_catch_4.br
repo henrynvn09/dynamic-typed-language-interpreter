@@ -1,0 +1,10 @@
+func main() {
+  raise "except1";
+}
+
+
+/*
+*OUT*
+ErrorType.FAULT_ERROR
+*OUT*
+*/

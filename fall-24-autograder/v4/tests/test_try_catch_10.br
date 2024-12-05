@@ -1,0 +1,22 @@
+func inc(x) {
+ print("inc:", x);
+ return x + 1;
+}
+func main() {
+ var a;
+ for (a = 0; a < 3; a = inc(a)) {
+   print(a);
+ }
+}
+
+
+/*
+*OUT*
+0
+inc:0
+1
+inc:1
+2
+inc:2
+*OUT*
+*/
