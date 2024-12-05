@@ -38,7 +38,7 @@ class Interpreter(InterpreterBase):
     def __run_function(self, func_name, passed_arguments=[], lazy=True):
         """run a function based on name and list of arguments, if lazy argument is evaluated lazily and return lazy value"""
         # TODO: double check modifying passed_arguments inside function
-        evaluated_args = [self.__eval_expr(arg, lazy) for arg in passed_arguments]
+        evaluated_args = [self.__eval_expr(arg, True) for arg in passed_arguments]
         func_def: Element = self.__get_func(func_name, passed_arguments)
 
         def run():
