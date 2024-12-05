@@ -405,6 +405,8 @@ files = [
     "v4/fails/test_lazy_1.br",
     "v4/tests/test_lazy_upd1.br",
     "v4/tests/test_exception_1.br",
+    "v4/tests/test_try_catch_21.br",
+    "v4/tests/test_try_catch_11.br",
 ]
 
 if __name__ == "__main__":

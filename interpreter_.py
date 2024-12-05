@@ -89,8 +89,9 @@ class Interpreter(InterpreterBase):
                     self.env_scope_stack.destroy_top_scope()
                     return is_return, return_value
             elif statement.elem_type == InterpreterBase.RETURN_NODE:
+                return_value = self.__return_value(statement)
                 self.env_scope_stack.destroy_top_scope()
-                return True, self.__return_value(statement)
+                return True, return_value
             elif statement.elem_type == InterpreterBase.FOR_NODE:
                 is_return, return_value = self.__do_for(statement)
                 if is_return:
