@@ -1,3 +1,8 @@
+# Branches
+- `part2-dynamically-typed-interpreter` dynamically typed Interpreter
+- `brewin++_statically_typed` Statically typed Interpreter (statically typed + variables/arguments/return type + coercion + struct)
+- `brewin#_interpreter` dynamically typed interpreter with lazy evaluation, exception handling, and short-circuiting (update of `part2-dynamically-typed-interpreter`)
+
 # Brewin# Interpreter Project
 
 ## Project Overview
